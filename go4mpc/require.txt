@@ -1,0 +1,14 @@
+
+-  CallStmt muse have a single line
+
+
+Syntax上的约束：
+- For循环的Init，Cond，Post格式必须是：i = X;i > Y;i = i + 1. Y必须大于X用于分析循环次数
+- 密态赋值等号右边的表达式，必须只有一个操作符
+- 声明或者赋值等号右边的操作数，必须全为sec或者全为pub(数组索引和切片索引可以是任意的pub)
+- 混合了sec和pub的运算用提供的api函数来表示
+- 一个函数中，不能对变量进行重定义(不能有两个变量拥有相同的名字)
+- 一行只能Decl一个变量
+- 一行只能Assign一个变量
+- Decl时必须使用var x sint = abc这样的形式
+- Decl一个sec事，rhs不能是BasicLit

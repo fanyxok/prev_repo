@@ -1,0 +1,15 @@
+Shanghaitech 839052 Sist 9
+S print_year
+G pass_day -38646325
+S pass_day -42975861
+G pass_month -165390
+S pass_year -712004
+S pass_day 58956250
+G print_today
+S pass_year -960759
+S print_today
+G print_today
+S print_month
+G print_month
+S print_year
+G print_year

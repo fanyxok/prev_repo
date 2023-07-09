@@ -1,0 +1,39 @@
+Shanghaitech 517605 Spst 7
+G pass_year -31
+G pass_year 11
+S pass_day -4537
+G pass_day -4689
+S print_year
+S pass_month -122
+G go_to 807110 Jan 8
+S print_year
+G pass_month 34
+G pass_month 237
+S pass_year 27
+S pass_year -12
+S print_year
+G pass_day -4652
+S print_month
+G pass_month -38
+G pass_year 24
+S pass_day -497
+G print_month
+S pass_month -242
+G pass_month -89
+G pass_year 6
+S pass_day -3623
+G pass_year -1
+G pass_year -2
+S pass_year 29
+S pass_year -3
+G pass_day 107
+G pass_month -67
+S pass_month 113
+G pass_month -193
+S pass_day -3710
+S print_today
+G print_today
+S print_month
+G print_month
+S print_year
+G print_year

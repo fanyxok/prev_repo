@@ -1,0 +1,15 @@
+Shanghaitech 106164 Spst 33
+G print_year
+S go_to 211684 Sem 7
+S pass_year -320711
+S pass_month 5295831
+G pass_year -121442
+G pass_year -20414
+G pass_year -676573
+G pass_year 1060804
+S print_today
+G print_today
+S print_month
+G print_month
+S print_year
+G print_year

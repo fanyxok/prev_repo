@@ -1,0 +1,15 @@
+Shanghaitech 319025 Spst 28
+G pass_month 525188
+G pass_year -920391
+S pass_month 9391486
+G pass_year 486683
+S print_year
+G pass_year -407445
+G pass_year 584665
+S pass_year -800884
+S print_today
+G print_today
+S print_month
+G print_month
+S print_year
+G print_year

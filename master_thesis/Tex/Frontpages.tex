@@ -1,0 +1,35 @@
+%---------------------------------------------------------------------------%
+%->> 封面信息及生成
+%---------------------------------------------------------------------------%
+%-
+%-> 中文封面信息
+%-
+%\confidential{}% 密级：只有涉密论文才填写
+
+%-
+
+
+%-
+%-> 作者声明
+%-
+%\makedeclaration% 生成声明页
+%-
+%-> 中文摘要
+%-
+
+\chapter*{摘\quad 要}\chaptermark{摘\quad 要}% 摘要标题
+\setcounter{page}{1}% 开始页码
+\pagenumbering{Roman}% 页码符号
+多方安全计算(Secure Multi-party Computation，简称为SMPC)是安全计算的一个前沿研究领域。它研究如何使互不信任的多个参与者，在不泄露自身隐私输入数据信息的前提下，协同计算一个依赖各个参与者输入数据的函数的结果。Wys*是第一个用于开发SMPC程序的领域特定语言。Wys*基于F*面向验证的特点，拥有对Wys*开发的SMPC程序进行计算正确性和安全性验证的能力，并完成了自身的形式化验证。本文以完善对多方安全计算程序的验证能力为出发点，对Wys*的结构进行分析发现Wys*将多方安全计算函数编译为布尔电路时没有进行检查，导致可能在电路编译时出现错误。根据此观察提出基于类型的验证方法Wys-ckt，Wys-ckt对Wys*程序中的多方安全计算函数进行验证，保证安全计算函数的语义符合Wys*的电路编译能力。  
+
+
+\keywords{多方安全计算，程序验证，电路编译，类型系统}% 中文关键词
+%-
+%-> 英文摘要
+%-
+\chapter*{Abstract}\chaptermark{Abstract}% 摘要标题
+
+Secure multi-party computation(SMPC) is a research area of secure computation. SMPC makes participators learn the correct output of a public function on their private data while keeping their own inputs secret. Wys* is the first domain specific language used for SMPC programs. Wys* is based on the verification-oriented property of F* language. It is able to verify the computation correctness and security reliability of SMPC programs and it is also formally verified itself. This thesis is aimed to improve the verification ability to SMPC programs. While analyzing the structure of Wys*, one of what we find is that Wys* doesn't check the public secure function when compile this function to boolean circuit so that an error may occur during the circuit compiling process. Based on this observation, we design and implement a type-based verification tool called Wys-ckt. Wys* has an ability to verify the public secure function of a Wys* progam so that ensure the semantic of the public secure function is under the circuit compiling ability of Wys*. 
+
+\englishkeywords{secure multi-party computation, program verification, circuit translation, type system}% 英文关键词
+%---------------------------------------------------------------------------%

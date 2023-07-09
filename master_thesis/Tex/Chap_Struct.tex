@@ -1,0 +1,290 @@
+\chapter{Wys-ckt的设计}\label{Design}
+本章重点解释本文研究的设计思路。在第一节中基于Wys*的特殊语法和F*的基础语法构建了本文研究的Wys*的语法系统。第二节的内容描述本文如何根据多方安全计算需要的特殊类型设计一套类型系统，最后一节介绍了本文基于类型系统设计的验证方法。
+\section{词法与语法}
+如第二章中所描述的，Wys*拥有许多SMPC特性，不仅使用了独特的标识多方计算参与者关键字\textbf{Alice}, \textbf{Bob}, \textbf{Charlie}，还拥有一系列\textbf{as\_par}, \textbf{as\_sec}，\textbf{box}, \textbf{mkwire}，\textbf{FFI}等各具功能的独特结构。Wys*在设计时只形式化的表述了这些特殊语法，但没有完整的描述Wys*程序的语法。因此，为了保护对这些特有结构的分析，使其与F*本身的函数以及用户自定义的函数区分开，本文将Wys*中所有的特殊结构，包括参与者关键字、安全计算、映射函数、外部函数接口等内容都作为关键字保留下来。根据此想法，基于F*的语言基础和Wys*的特殊内容构造出更为清晰的完整的Wys*语法。
+
+一个完整的Wys*程序由一个\textbf{module}定义和一系列声明组成。\textbf{module}定义了当前文件模块的名字，一系列声明描述了当前文件的内容。
+\begin{equation*}
+\begin{split}
+\text{Program}\ p \coloneqq &\  \textbf{module}\  \text{M}\  decls \\
+\text{Declarations}\ decls \coloneqq &\ decl \\
+\vert &\ decl\ decls 
+\end{split}
+\end{equation*}
+声明中包含四种不同的声明类型，\textbf{open}声明了对Wys*其他模块的引用；\textbf{val}声明了一个函数的名字以及输入类型和输出类型的定义；\textbf{let}用于将名与值进行绑定或者定义一个声明过的函数的具体表达式内容，\textbf{rec}是可选的关键字，表示\textbf{let}声明的内容可以递归执行；\textbf{type}声明则用于构建新的类型，例如声明一个新的联合类型或者记录类型(类似与C中的枚举和结构体)，由于Wys*程序中操作的数据类型是布尔值和整数这些基础类型，用户构造的类型不能用安全计算函数，所以这一部分内容在分析时被简化，此处不展开讨论。
+\begin{equation*}
+\begin{split}
+\text{Declaration}\ decl \coloneqq &\  \textbf{open}\  M\\
+\vert &\ \textbf{let}\ [\textbf{rec}]\ x\ =\ e\\
+\vert &\ \textbf{val}\ f\colon t \\
+\vert &\ \textbf{type}\ tdecl
+\end{split}
+\end{equation*}
+表达式中的局部绑定、条件分支、变量、常数、函数应用等内容与一般的语法无异，重点在于将Wys*描述的特殊结构与基础表达式进行组合
+\begin{equation*}
+\begin{split}
+\text{Expression}\ e \coloneqq &\  v \\
+\vert &\  e_1\  e_2 \\
+\vert &\  e.f \\
+\vert &\ \textbf{as\_par}\ e_1\ e_2 \\
+\vert &\ \textbf{as\_sec}\ e_1\ e_2 \\
+\vert &\ \textbf{box}\ e_1\ e_2 \\
+\vert &\ \textbf{unbox}\ e \\
+\vert &\ \textbf{FFI.f}\ \bar{e} \\
+\vert &\ \textbf{mkwire}\ e_1\ e_2 \\
+\vert &\ \textbf{projwire}\ e_1\ e_2 \\
+\vert &\ \textbf{concat}\ e_1\ e_2 \\
+\vert &\  \textbf{let}\  x=e_1\ \textbf{in}\ e_2  \\
+\vert &\  e_1\ op\ e_2 \\
+\vert &\  \textbf{fun}\ x \to e  \\
+\vert &\ \textbf{if}\ e_1 \ \textbf{then}\ e_2 \ \textbf{else}\ e_3 
+\end{split}
+\end{equation*}
+另外增加了参与者标识的常数类型Principal，包含\textbf{Alice}、\textbf{Bob}等关键字。
+\begin{equation*}
+\begin{split}
+\text{Value}\ v\  \coloneqq &\ x  \\
+\vert &\ c 
+\end{split}
+\end{equation*}
+\begin{equation*}
+\begin{split}
+\text{Constant}\ c \coloneqq &\ () \vert\ 0\ \vert\ 1\ \vert\ \dots \vert\ \textbf{true}\ \vert\ \textbf{false} \vert\ p \\
+\text{Principal}\ p \coloneqq &\ \textbf{Alice}\ \vert\ \textbf{Bob}\ \vert\ \textbf{Charlie} \vert\ \textbf{Dave} \\
+\text{Operator}\ op \coloneqq &\ \textbf{+}\ | \textbf{-}\ | \textbf{>}\ | \dots  
+\end{split}
+\end{equation*}
+\section{类型系统}
+在构建Wys*的类型系统时，除了基础的布尔、整数、列表类型，还考虑到众多与多方安全计算相关的独特类型，包括参与者常数类型Prin，用于保护隐私数据的封装类型Box，与电路输入输出相关的类型Wire。基于F*的基础类型规则将Wys*的特殊类型与基础类型合并后构造出了一系列新的类型，包括封装类型Box Int，Box List Int，Box Bool；基础映射类型Wire Bool，Wire Int，Wire Int List；封装映射类型Wire Box Bool， Wire Box Int， Wire Box List Int这些与安全计算相关的类型以及参与者集合PrinSet。为了集中注意于分析Wys*的类型，Prin、Box和Wire与构造函数也如语法构造时一样区别于一般的推导类型，作为Wys*的基础类型。通过构建两个新的类型函数Boxed与Wire，将新类型添加进类型系统当中时。Boxed($p$,$t$)是封装类型映射函数，表示一个被封装起来只能被参与者$p$解封的$t$类型的数据类型。Wire($t$,$ps$)是映射类型映射函数，表示一个由$ps$中的参与者提供的$t$类型数据的映射类型。
+
+常数类型包括布尔类型Bool、整数Int和参与者类型Prin。
+\newcommand{\infertext}[2]{\infer{{\textrm{#2}}}{\begin{aligned}#1\end{aligned}}}
+\[
+\infertext {
+\textrm{}}
+{$O$, $M$ $\vdash$ \textbf{false}: Bool}
+\]
+\[
+\infertext 
+{\textrm{}}
+{$O$, $M$ $\vdash$ \textbf{true}: Bool}
+\]
+\[
+\infertext {\textrm{i is an interger constant}}{$O$, $M$ $\vdash$ i: Int}
+\]
+\[
+\infertext {\textrm{i is an principle constant}}{$O$, $M$ $\vdash$ i: Prin}
+\]
+类型系统当中，$O$代表命名变量环境，记录了所有命名变量和对应的类型；$M$代表函数环境，记录了函数名以及对应的参数类型和结果类型。下列推导式表示，假设有$n$个表达式$e_1,e_2,\dots,e_n$分别拥有类型$T_1,T_2,\dots,T_n$，函数$f$对应的输入类型分别是$T_1,T_2,\dots,T_n$并且返回结果拥有类型$T_{n+1}$，那么可以推导出表达式 $f(e_1,e_2,\dots,e_n)$ 拥有$T_{n+1}$类型。
+\[
+\infertext {
+&\textrm{$O$, $M$ $\vdash$ $e_1$: $T_1$}\\
+&\textrm{\dots}\\
+&\textrm{$O$, $M$ $\vdash$ $e_n$: $T_n$}\\
+&\textrm{$M(f)=(T_1,\dots ,T_n,T_{n+1})$}
+}{$O$, $M$ $\vdash$ $f(e_1,\dots ,e_n)$: $T_{n+1}$}
+\]
+Wys*的条件分支语句不同于命令式语言，要求两条分支都拥有同样的类型。
+\[
+\infertext {
+&\textrm{$O$, $M$ $\vdash$ $e_0$: Bool}\\
+&\textrm{$O$, $M$ $\vdash$ $e_1$: $T$}\\
+&\textrm{$O$, $M$ $\vdash$ $e_2$: $T$}
+}{$O$, $M$ $\vdash$ \textbf{if} $e_0$ \textbf{then} $e_1$ \textbf{else} $e_2$: $T$}
+\]
+在局部绑定表达式中，$e_2$所在的表达式在$x$被绑定为$T_0$类型的值后相比较于$e_1$所在的环境已经发生变化，$O[T_0/x]$表示在环境$O$中增加一个名为$x$的拥有$T_0$类型的值。
+\[
+\infertext {
+&\textrm{$O$, $M$ $\vdash$ $e_1$: $T_1$}\\
+&\textrm{$T_1 \leq T_0$}\\
+&\textrm{$O[T_0 /x]$, $M$ $\vdash$ $e_2$: $T_2$}
+}{$O$, $M$ $\vdash$ \textbf{let} $x:T_0 = e_1$ \textbf{in} $e_2$: $T_2$}
+\]
+\[
+\infertext {
+&\textrm{$O$, $M$ $\vdash$ $e_1$: $T_1$}\\
+&\textrm{$T_1 \leq T_0$}
+}{$O$, $M$ $\vdash$ \textbf{let} $x:T_0 = e_1$: Unit }
+\]
+根据Wys*的实际限制，二元运算不再能应用于任何数据类型，只能作用于整数、布尔和整数列表。
+\[
+\infertext {
+&\textrm{$O$, $M$ $\vdash$ $e_1$: $T_1$}\\
+&\textrm{$O$, $M$ $\vdash$ $e_2$: $T_2$}\\
+&\textrm{$T_1,T_2 \in \{\text{Int,Bool,List Int}\}$}
+}{$O$, $M$ $\vdash$ $e_1 = e_2$: Bool }
+\]
+\[
+\infertext {
+&\textrm{$O$, $M$ $\vdash$ $e_1$: Int}\\
+&\textrm{$O$, $M$ $\vdash$ $e_2$: Int}\\
+&\textrm{$op\in \{\text{+,-,*,/,\%}\}$}
+}{$O$, $M$ $\vdash$ $e_1\ op\ e_2$: Int }
+\]
+\[
+\infertext {
+&\textrm{$O$, $M$ $\vdash$ $e_1$: Int}\\
+&\textrm{$O$, $M$ $\vdash$ $e_2$: Int}\\
+&\textrm{$op\in \{\text{>,<}\}$}
+}{$O$, $M$ $\vdash$ $e_1\ op\ e_2$: Bool }
+\]
+安全计算\textbf{as\_sec}和并行计算\textbf{as\_par}拥有复杂的底层结构，但类型推导并不复杂
+\[
+\infertext {
+&\textrm{$O$, $M$ $\vdash$ $e_1$: PrinSet}\\
+&\textrm{$O$, $M$ $\vdash$ $e_2$: $T$}
+}{$O$, $M$ $\vdash$ $\textbf{as\_sec}\ e_1\ e_2:T$}
+\]
+\[
+\infertext {
+&\textrm{$O$, $M$ $\vdash$ $e_1$: PrinSet}\\
+&\textrm{$O$, $M$ $\vdash$ $e_2$: $T$}
+}{$O$, $M$ $\vdash$ $\textbf{as\_par}\ e_1\ e_2:T$}
+\]
+封装和解封操作比较特别，在Boxed的辅助下完成类型推导
+\[
+\infertext {
+&\textrm{$O$, $M$ $\vdash$ $e_1$: $T_1$}\\
+&\textrm{$T_1$ $\in$ PrinSet}\\
+&\textrm{$O$, $M$ $\vdash$ $e_2$: $T_2$}\\
+&\textrm{$T_0$=Boxed($T_2$, $T_1$)}
+}{$O$, $M$ $\vdash$ \textbf{box} $e_1$ $e_2$:$T_0$}
+\]
+\[
+\infertext {
+&\textrm{$O$, $M$ $\vdash$ $e_1$: $T_1$}\\
+&\textrm{$T_2\in$ PrinSet}\\
+&\textrm{$T_1$=Boxed($T_0$, $T_2$)}
+}{$O$, $M$ $\vdash$ $\textbf{unbox}\ e_1\ :T_0$}
+\]
+与映射相关的类型借助Wire完成，创建映射时既可以创建一个到一般类型的映射，也可以创建到封装类型的映射
+\[
+\infertext {
+&\textrm{$O$, $M$ $\vdash$ $e_1$: $T_1$}\\
+&\textrm{$O$, $M$ $\vdash$ $e_2$: $T_2$}\\
+&\textrm{$T_1\in$ PrinSet}\\
+&\textrm{$T_0$=Wire$(T_2,T_1)$}
+}{$O$, $M$ $\vdash$ $\textbf{mkwire}\ e_1\ e_2\ :T_0$}
+\]
+\[
+\infertext {
+&\textrm{$O$, $M$ $\vdash$ $e_1$: $T_1$}\\
+&\textrm{$O$, $M$ $\vdash$ $e_2$: $T_2$}\\
+&\textrm{$T_1\in$ PrinSet}\\
+&\textrm{Wire($T_0$,$T_1$)=$T_2$}
+}{$O$, $M$ $\vdash$ $\textbf{projwire}\ e_1\ e_2\ :T_0$}
+\]
+\[
+\infertext {
+&\textrm{$O$, $M$ $\vdash$ $e_1$: $T_1$}\\
+&\textrm{$O$, $M$ $\vdash$ $e_2$: $T_2$}\\
+&\textrm{$T_3,T_4\in$ PrinSet}\\
+&\textrm{$T_1$=Wire($T_0'$,$T_3$)}\\
+&\textrm{$T_2$=Wire($T_0'$,$T_4$)}\\
+&\textrm{$T_0$=Wire($T_0'$,$T_3\cup T_4$)}
+}{$O$, $M$ $\vdash$ \textbf{concat} $e_1$ $e_2$ :$T_0$}
+\]
+
+\section{基于类型系统的验证模式}
+本文构造一种基于类型系统的验证Wys*程序的安全计算函数电路编译可行性的验证方法。根据对Wys*文献以及电路编译程序模块的分析，本文构造出一个类型检查系统，一个Wys*程序经过其中的类型条件的检查后，安全计算函数一定处于Wys*的电路编译能力之内。我们将这个类型检查系统用公式的形式表示出来，在\ref{trans}节中描述的表达式和对应语法树上按照公式中的规则进行检查。以下是进行类型检查的公式，其中$\Gamma$符号表示类型环境，类型环境记录了类型分析时得到的类型信息，公式中分隔线之下的内容表示对一个表达式进行类型检查，分隔线之上的内容表示表达式需要满足的类型条件，$\perp$符号表示检查结果为正确。
+
+安全计算函数的输入就是电路的输入，这些输入的类型限制在Int、Bool、List Int和封装类型范围内，封装类型包括Box Bool、Box Int、 Box List Int。而常数只能限制于整数和布尔值两种。
+\[
+\infertext {
+&\textrm{$x$ is an input variable}\\
+&\textrm{$\Gamma$ $\vdash$ $x$: $T_1$}\\
+&\textrm{$T_2\in$\{Int, Bool, List Int\}}\\
+&\textrm{$T_3$=Box $T_2$}\\
+&\textrm{$T_1\in$$T_2\cup T_3$}
+}{$\Gamma$ $\vdash$ $x$: $\perp$}
+\]
+\[
+\infertext {
+&\textrm{$c$ is a constant}\\
+&\textrm{$\Gamma$ $\vdash$ $c$:$T$}\\
+&\textrm{$T\in$ \{Int, Bool\}}
+}{$\Gamma$ $\vdash$ $c$: $\perp$}
+\]
+\textbf{unbox}表达式的参数必须是封装类型，因此需要检查它的参数的类型。
+\[
+\infertext {
+&\textrm{$\Gamma$ $\vdash$ $e$:$T_1$}\\
+&\textrm{$T_2\in$ PrinSet}\\
+&\textrm{$T_1$=Boxed($T_0$, $T_2$)}\\
+&\textrm{$T_0\in$ \{Int, Bool, List Int\}}
+}{$\Gamma$ $\vdash$ \textbf{unbox} $e$: $\perp$}
+\]
+局部绑定表达式的类型检查结果则与两个子表达式$e_1$,$e_2$的检查结果相关。
+\[
+\infertext {
+&\textrm{$\Gamma$ $\vdash$ $e_1$: $T_0$}\\
+&\textrm{$\Gamma$ $\vdash$ $e_2$: $T_1$}
+}{$\Gamma$ $\vdash$ \textbf{let} $x = e_1$ \textbf{in} $e_2$: $e_1$\&\&$e_2$}
+\]
+二元运算受到的限制更加严格，只有整数之间的加法、减法和大于比较以及整数、布尔、整数列表之间的等于比较。
+\[
+\infertext {
+&\textrm{$\Gamma$ $\vdash$ $e_1$: $T_1$}\\
+&\textrm{$\Gamma$ $\vdash$ $e_2$: $T_2$}\\
+&\textrm{$T_1,T_2 \in \{\text{Int,Bool,List Int}\}$}
+}{$\Gamma$ $\vdash$ $e_1 = e_2$: $\perp$ }
+\]
+\[
+\infertext {
+&\textrm{$\Gamma$ $\vdash$ $e_1$: Int}\\
+&\textrm{$\Gamma$ $\vdash$ $e_2$: Int}\\
+&\textrm{$op\in \{\text{+,-}\}$}
+}{$\Gamma$ $\vdash$ $e_1\ op\ e_2$: $\perp$ }
+\]
+\[
+\infertext {
+&\textrm{$\Gamma$ $\vdash$ $e_1$: Int}\\
+&\textrm{$\Gamma$ $\vdash$ $e_2$: Int}\\
+&\textrm{$op\in \{\text{>}\}$}
+}{$\Gamma$ $\vdash$ $e_1\ op\ e_2$: $\perp$ }
+\]
+条件分支的类型检查和局部绑定类型，结果取决于子表达式。
+\[
+\infertext {
+&\textrm{$\Gamma$ $\vdash$ $e_1$: Bool}\\
+&\textrm{$\Gamma$ $\vdash$ $e_2$: $T$}\\
+&\textrm{$\Gamma$ $\vdash$ $e_3$: $T$}
+}{$\Gamma$ $\vdash$ \textbf{if} $e_0$ \textbf{then} $e_1$ \textbf{else} $e_2$: $e0$\&\&$e_1$\&\&$e_2$}
+\]
+以下是FFI函数的检查，这些函数在电路编译被展开为电路的形式，受到较多的条件限制。
+\[
+\infertext {
+&\textrm{$\Gamma$ $\vdash$ $e_1$: Int}\\
+&\textrm{$\Gamma$ $\vdash$ $e_2$: List Int}\\
+}{$\Gamma$ $\vdash$ \textbf{FFI.mk\_cons} $e_1$ $e_2$ : $\perp$ }
+\]
+\[
+\infertext {
+&\textrm{$\Gamma$ $\vdash$ $e_1$: $T$}\\
+&\textrm{$e_1$ is a constant and $T=$ Int}\\
+&\textrm{$\Gamma$ $\vdash$ $e_2$: List Int}\\
+}{$\Gamma$ $\vdash$ \textbf{FFI.nth} $e_1$ $e_2$ : $\perp$ }
+\]
+\[
+\infertext {
+&\textrm{$\Gamma$ $\vdash$ $e_1$: $T_1$}\\
+&\textrm{$\Gamma$ $\vdash$ $e_2$: $T_2$}\\
+&\textrm{$e_1$ is variable and $T_1=$ Int}\\
+&\textrm{$e_2$ is variable and $T_2=$ List Int}\\
+}{$\Gamma$ $\vdash$ \textbf{FFI.list\_mem} $e_1$ $e_2$ : $\perp$ }
+\]
+\[
+\infertext {
+&\textrm{$\Gamma$ $\vdash$ $e_1$: $T_1$}\\
+&\textrm{$\Gamma$ $\vdash$ $e_2$: $T_2$}\\
+&\textrm{$e_1$ is variable and $T_1=$ List Int}\\
+&\textrm{$e_2$ is variable and $T_2=$ List Int}\\
+}{$\Gamma$ $\vdash$ \textbf{FFI.list\_intersect} $e_1$ $e_2$ : $\perp$ }
+\]
+
+以上类型检查公式描述出了所有\ref{trans}节中的表达式的正确的检查条件，不在以上描述范围内的类型模式都认为是不正确的。这样具体表示出来后，对于一个安全计算函数$f$代表的表达式$e$，递归的检查$e$中的子表达式是否在\ref{trans}节中的语法所描述的范围之内。对$e$所对应的有类型语法树$t$，检查$t$中各个子树节点的模式和类型是否符合以上公式中描述的类型限制即可判断其是否具有电路编译的可行性。经过这样的类型和模式检查后通过验证的安全计算函数可以保证被Wys*成功的编译为布尔电路。
+
+
+
+
+

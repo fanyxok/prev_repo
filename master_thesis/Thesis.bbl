@@ -1,0 +1,105 @@
+\begin{thebibliography}{13}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{#1}
+\providecommand{\href}[2]{\url{#2}}
+\providecommand{\doi}[1]{DOI: \href{http://dx.doi.org/#1}{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax\relax\else
+  \urlstyle{same}\fi
+
+\bibitem[Yao(1982)]{yao1982protocols}
+YAO A~C.
+\newblock Protocols for secure computations\allowbreak[C]//\allowbreak{}23rd
+  annual symposium on foundations of computer science (sfcs 1982).
+\newblock [S.l.]: IEEE, 1982: 160--164.
+
+\bibitem[Goldreich\ et~al.(2019)Goldreich, Micali, and
+  Wigderson]{goldreich2019play}
+GOLDREICH O, MICALI S, WIGDERSON A.
+\newblock How to play any mental game, or a completeness theorem for protocols
+  with honest majority\allowbreak[M]//\allowbreak{}Providing Sound Foundations
+  for Cryptography: On the Work of Shafi Goldwasser and Silvio Micali.
+\newblock [S.l.: s.n.], 2019: 307--328.
+
+\bibitem[Almeida\ et~al.(2018)Almeida, Barbosa, Barthe, Pacheco, Pereira, and
+  Portela]{almeida2018enforcing}
+ALMEIDA J~B, BARBOSA M, BARTHE G, et~al.
+\newblock Enforcing ideal-world leakage bounds in real-world secret sharing mpc
+  frameworks\allowbreak[C]//\allowbreak{}2018 IEEE 31st Computer Security
+  Foundations Symposium (CSF).
+\newblock [S.l.]: IEEE, 2018: 132--146.
+
+\bibitem[Rastogi\ et~al.(2019)Rastogi, Swamy, and Hicks]{rastogi2019textsc}
+RASTOGI A, SWAMY N, HICKS M.
+\newblock $wys*$: A dsl for verified secure multi-party
+  computations\allowbreak[C]//\allowbreak{}International Conference on
+  Principles of Security and Trust.
+\newblock [S.l.]: Springer, 2019: 99--122.
+
+\bibitem[Backes\ et~al.(2010)Backes, Maffei, and
+  Mohammadi]{backes2010computationally}
+BACKES M, MAFFEI M, MOHAMMADI E.
+\newblock Computationally sound abstraction and verification of secure
+  multi-party computations\allowbreak[C]//\allowbreak{}IARCS Annual Conference
+  on Foundations of Software Technology and Theoretical Computer Science
+  (FSTTCS 2010).
+\newblock [S.l.]: Schloss Dagstuhl-Leibniz-Zentrum fuer Informatik, 2010.
+
+\bibitem[Bogdanov\ et~al.(2008)Bogdanov, Laur, and
+  Willemson]{bogdanov2008sharemind}
+BOGDANOV D, LAUR S, WILLEMSON J.
+\newblock Sharemind: A framework for fast privacy-preserving
+  computations\allowbreak[C]//\allowbreak{}European Symposium on Research in
+  Computer Security.
+\newblock [S.l.]: Springer, 2008: 192--206.
+
+\bibitem[Rastogi\ et~al.(2017)Rastogi, Swamy, and Hicks]{rastogi2017wys}
+RASTOGI A, SWAMY N, HICKS M.
+\newblock Wys*: A verified language extension for secure multi-party
+  computations\allowbreak[J].
+\newblock arXiv preprint arXiv:1711.06467, 2017.
+
+\bibitem[Rastogi\ et~al.(2014)Rastogi, Hammer, and Hicks]{rastogi2014wysteria}
+RASTOGI A, HAMMER M~A, HICKS M.
+\newblock Wysteria: A programming language for generic, mixed-mode multiparty
+  computations\allowbreak[C]//\allowbreak{}2014 IEEE Symposium on Security and
+  Privacy.
+\newblock [S.l.]: IEEE, 2014: 655--670.
+
+\bibitem[Evans\ et~al.(2017)Evans, Kolesnikov, and Rosulek]{evans2017pragmatic}
+EVANS D, KOLESNIKOV V, ROSULEK M.
+\newblock A pragmatic introduction to secure multi-party
+  computation\allowbreak[J].
+\newblock Foundations and Trends{\textregistered} in Privacy and Security,
+  2017, 2\penalty0 (2-3).
+
+\bibitem[Beaver\ et~al.(1990)Beaver, Micali, and Rogaway]{beaver1990round}
+BEAVER D, MICALI S, ROGAWAY P.
+\newblock The round complexity of secure
+  protocols\allowbreak[C]//\allowbreak{}Proceedings of the twenty-second annual
+  ACM symposium on Theory of computing.
+\newblock [S.l.: s.n.], 1990: 503--513.
+
+\bibitem[Pinkas\ et~al.(2015)Pinkas, Schneider, Segev, and
+  Zohner]{pinkas2015phasing}
+PINKAS B, SCHNEIDER T, SEGEV G, et~al.
+\newblock Phasing: Private set intersection using permutation-based
+  hashing\allowbreak[C]//\allowbreak{}24th $\{$USENIX$\}$ Security Symposium
+  ($\{$USENIX$\}$ Security 15).
+\newblock [S.l.: s.n.], 2015: 515--530.
+
+\bibitem[Zahur\ et~al.(2015)Zahur and Evans]{zahur2015obliv}
+ZAHUR S, EVANS D.
+\newblock Obliv-c: A language for extensible data-oblivious
+  computation.\allowbreak[J].
+\newblock IACR Cryptology ePrint Archive, 2015, 2015\penalty0 (1153).
+
+\bibitem[Choi\ et~al.(2012)Choi, Hwang, Katz, Malkin, and
+  Rubenstein]{choi2012secure}
+CHOI S~G, HWANG K~W, KATZ J, et~al.
+\newblock Secure multi-party computation of boolean circuits with applications
+  to privacy in on-line
+  marketplaces\allowbreak[C]//\allowbreak{}Cryptographers’ Track at the RSA
+  Conference.
+\newblock [S.l.]: Springer, 2012: 416--432.
+
+\end{thebibliography}

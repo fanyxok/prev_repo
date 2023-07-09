@@ -1,0 +1,15 @@
+Shanghaitech 639627 Ih 37
+S print_month
+G pass_day 48396871
+G pass_month -1752607
+S go_to 937723 Spst 39
+S pass_month 5609625
+G print_today
+G pass_day -40497354
+S print_month
+S print_today
+G print_today
+S print_month
+G print_month
+S print_year
+G print_year

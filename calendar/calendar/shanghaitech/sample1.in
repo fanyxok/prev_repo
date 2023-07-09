@@ -1,0 +1,39 @@
+Shanghaitech 646373 Ihuman 9
+S pass_day 4728
+S pass_year -12
+G pass_year -26
+G pass_year 11
+G print_month
+G pass_month 111
+S pass_month 38
+G pass_year -17
+G pass_day -4200
+G pass_year 0
+G pass_day -1382
+S pass_month -22
+S pass_day -3046
+S print_year
+G pass_month -105
+S pass_month -78
+G pass_month 173
+S pass_month -95
+S pass_day -1388
+S pass_month -209
+G print_year
+G pass_month -75
+G pass_day -186
+S pass_month 125
+S pass_year 17
+S pass_day -4183
+S pass_year 16
+S pass_year -9
+G pass_year -6
+S pass_year 24
+S print_month
+G print_today
+S print_today
+G print_today
+S print_month
+G print_month
+S print_year
+G print_year

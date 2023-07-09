@@ -1,0 +1,80 @@
+2-darray.exe
+one-bit
+  misprediction rate                 |      9.59%
+pentium_m
+  misprediction rate                 |      4.52%
+perceptron
+  misprediction rate                 |      3.76%
+perceptron-local
+  misprediction rate                 |      4.25%
+------
+api.exe
+one-bit
+  misprediction rate                 |     14.77%
+pentium_m
+  misprediction rate                 |     11.66%
+perceptron
+  misprediction rate                 |      9.25%
+perceptron-local
+  misprediction rate                 |      8.30%
+------
+lab0.exe
+one-bit
+  misprediction rate                 |     15.69%
+pentium_m
+  misprediction rate                 |     10.36%
+perceptron
+  misprediction rate                 |      7.90%
+perceptron-local
+  misprediction rate                 |      7.15%
+------
+phone.exe
+one-bit
+  misprediction rate                 |     14.88%
+pentium_m
+  misprediction rate                 |     11.66%
+perceptron
+  misprediction rate                 |      9.29%
+perceptron-local
+  misprediction rate                 |      8.35%
+------
+signal.exe
+one-bit
+  misprediction rate                 |     14.73%
+pentium_m
+  misprediction rate                 |     11.64%
+perceptron
+  misprediction rate                 |      9.36%
+perceptron-local
+  misprediction rate                 |      8.34%
+------
+true
+one-bit
+  misprediction rate                 |     13.19%
+pentium_m
+  misprediction rate                 |     12.64%
+perceptron
+  misprediction rate                 |      7.90%
+perceptron-local
+  misprediction rate                 |      5.70%
+------
+fft
+one-bit
+  misprediction rate                 |     19.12%
+pentium_m
+  misprediction rate                 |      6.58%
+perceptron
+  misprediction rate                 |      4.40%
+perceptron-local
+  misprediction rate                 |      4.50%
+------
+bigmul
+one-bit
+  misprediction rate                 |      0.89%
+pentium_m
+  misprediction rate                 |      0.53%
+perceptron
+  misprediction rate                 |      0.47%
+perceptron-local
+  misprediction rate                 |      0.42%
+------

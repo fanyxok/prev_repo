@@ -1,0 +1,56 @@
+2
+In 1 []int32 0 256
+Decl 2 S [][]int32 [[] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] []]
+Decl 3 P int32 0
+Loop 128
+Decl 4 S []int32 [0 0]
+Decl 5 P int32 2
+Mul 6 3 5
+Read 7 6 1 false
+Write 4 0 7 true
+Decl 8 P int32 2
+Mul 9 3 8
+Decl 10 P int32 1
+Add 11 9 10
+Read 12 11 1 false
+Write 4 0 12 true
+Write 2 3 4 false
+Decl 13 P int32 1
+Add 14 3 13
+Update 3 14
+EndLoop
+Decl 15 S []int32 [0 0]
+In 16 int32 1 0
+Write 15 0 16 true
+In 17 int32 1 0
+Write 15 1 17 true
+Read 18 0 2 true
+Read 19 0 18 true
+Read 20 1 18 true
+Read 21 0 15 true
+Read 22 1 15 true
+Sub 23 19 21
+Sub 24 20 22
+Mul 25 23 23
+Mul 26 24 24
+Add 27 25 26
+Decl 28 P int32 0
+Loop 128
+Read 29 28 2 false
+Read 30 0 29 true
+Read 31 1 29 true
+Read 32 0 15 true
+Read 33 1 15 true
+Sub 34 30 32
+Sub 35 31 33
+Mul 36 34 34
+Mul 37 35 35
+Add 38 36 37
+Lt 39 38 27
+Mux 40 39 38 27
+Update 27 40
+Decl 41 P int32 1
+Add 42 28 41
+Update 28 42
+EndLoop
+Out 27

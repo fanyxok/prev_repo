@@ -1,0 +1,15 @@
+Shanghaitech 1000312 Siais 6
+G pass_month 6279594
+G go_to 683333 Jun 9
+S print_month
+G pass_year 330109
+G pass_year 366847
+S pass_year -858801
+S pass_day -95941893
+G pass_day 47180221
+S print_today
+G print_today
+S print_month
+G print_month
+S print_year
+G print_year

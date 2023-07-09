@@ -1,0 +1,16 @@
+Gregorian 2021 Jan 1
+G print_today
+G print_month
+G pass_month -10
+G print_month
+G pass_month 10
+G print_month
+G pass_month 10
+G print_month
+G pass_day 365
+G print_today
+G pass_day -364
+G print_today
+G go_to 9999 Aug 1
+G print_today
+G print_month

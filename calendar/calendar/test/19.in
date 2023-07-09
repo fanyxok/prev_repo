@@ -1,0 +1,135 @@
+Shanghaitech 704874 Sca 11
+S pass_day -51816531
+S pass_day -40202181
+S pass_day -91190635
+G print_month
+G pass_day -95641337
+G go_to 13738 Sep 19
+S pass_month 6261679
+G print_year
+S pass_month 8291213
+S pass_year -678613
+S pass_day 65400818
+S pass_year -1050796
+G pass_year 1013555
+G pass_month 7509714
+S pass_month -6100712
+S pass_year -842250
+G pass_year 957861
+G print_month
+S pass_month -6322040
+G pass_month -4414704
+S pass_year 611315
+S pass_month -7194939
+S pass_month 80300
+G pass_day 94438816
+S pass_month 2321333
+S pass_day -75599856
+G pass_year 734348
+S pass_month -6717081
+G pass_day -10775250
+G print_year
+G print_year
+S pass_year 587018
+G pass_year 650293
+G pass_day -33140035
+G pass_year -557193
+G pass_month -8568682
+S pass_year 970362
+G print_year
+S go_to 80739 Slst 33
+S pass_month -9553019
+G pass_year 710981
+S go_to 1 Spst 6
+G pass_month -4970542
+S print_today
+S pass_day 3098811
+S pass_day -27668012
+S pass_day -59052175
+S pass_day 78300635
+S pass_month 5472753
+S print_today
+G print_month
+S pass_year 452139
+S pass_year -933730
+G pass_month -6401456
+S pass_year -405028
+S print_today
+S pass_month -1527753
+G pass_day 68694762
+S pass_month 6906879
+G pass_year 10004
+G pass_day -18336315
+S pass_day -55898707
+G pass_day -60700648
+G pass_day -21410336
+S pass_month 4837672
+G pass_year -598577
+S pass_month -1142590
+S pass_year -548704
+G pass_day -91096588
+G pass_day -5050116
+S print_year
+G pass_year 762327
+G pass_year 717005
+S pass_year -689856
+S pass_year 616120
+G pass_month -8026179
+G pass_year -791263
+G print_month
+G pass_month 4848362
+G print_month
+G pass_year -841928
+G pass_day 85909329
+S pass_day 78079315
+S pass_month 2287460
+G pass_year 431795
+G print_today
+G pass_year -501286
+G print_month
+S pass_year -349467
+G print_year
+S pass_year -914584
+S pass_day -27883045
+S go_to 384675 Ihuman 1
+G pass_day 90955911
+G pass_month 5582706
+G pass_year 762560
+S print_month
+G pass_day 80960709
+S print_year
+S pass_month 8977219
+S pass_month 5734723
+G pass_year -562335
+S pass_month -2521079
+G print_today
+S pass_year -231496
+S pass_day -52676608
+S print_year
+S pass_day 15178581
+G pass_month -667097
+S print_today
+G pass_day -87245520
+G print_year
+G pass_year -1086462
+G pass_month -1025421
+G print_month
+S pass_month -3955530
+G pass_year 85221
+G pass_month -1182684
+S pass_month -6270666
+G pass_day -21434054
+G pass_day -6595213
+S pass_day -98694085
+S pass_day -1626313
+G pass_month 1221950
+G go_to 54896 Nov 24
+G print_month
+S pass_year -674175
+S pass_day 47159270
+S print_today
+G print_today
+S print_month
+G print_month
+S print_year
+G print_year

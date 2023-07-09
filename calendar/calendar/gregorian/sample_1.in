@@ -1,0 +1,24 @@
+Gregorian 336753 Oct 25
+G print_today
+G pass_year 17
+G pass_year -27
+G pass_month 87
+G print_today
+G print_today
+G pass_year 6
+G go_to 904718 May 7
+G pass_month 160
+G print_today
+G print_month
+G pass_month 214
+G print_month
+G pass_year -26
+G print_today
+G pass_day -3151
+G print_today
+G pass_year -13
+G print_today
+G pass_day -3431
+G print_today
+G print_month
+G print_year
