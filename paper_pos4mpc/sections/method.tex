@@ -1,0 +1,420 @@
+\section{Degrading Security Levels}\label{sec:symbolicreasoning}
+The type system allows to infer a security policy $\varrho$ such that the type judgement
+$\Pub\vdash p:\varrho_0\Rightarrow\varrho$ is valid, from which we can deduce that
+$\varrho\models_p f(\vec{x})$,
+i.e., $\varrho$ is perfect for the MPC application $f(\vec{x})$ implemented by the program $p$.
+However, the security policy $\varrho$ may be too conservative,
+i.e., some secret variables specified by $\varrho$ can be declassified
+without compromising the security. % so the computation and communication cost can be reduced.
+In this section, we propose an automated approach to identify these variables. We mainly consider secret branching variables, viz., the secret variables used in branching conditions, as they usually
+%It is because secret-dependent conditions should be removed via multiplexers, i.e., both branches of a secret-dependent conditional statement are executed whatever the truth value of the branching condition,  hence incurring
+incur a high computation and communication overhead.
+%Hereafter, a secret variable used as a branching condition will be called a secret condition \tl{why use this name?}.
+%
+W.l.o.g., we assume that for each secret branching variable  $x$ there is only one assignment to $x$ and it is used only in one conditional statement. %${\Pif} \ x \ {\Pthen} \  p_1 \ {\Pelse} \ p_2$.
+(We can rename variables in $p$ if this assumption does not hold, where
+the named variables have the same security levels as their original names.)
+With this assumption, whether $x$ can be declassified depends
+only on the unique conditional statement where it occurs.
+
+Fix a security policy $\varrho$ such that $\varrho\models_p f(\vec{x})$.
+%i.e., $\Enc_\varrho(1,p)$ does not raise any errors, and for every adversary-chosen private inputs $\vec{v}_k\in\Dom^k$, result $v\in\Rng$,
+%and initial states $\sigma,\sigma'\in\leak_{\tt iw}^p(v,\vec{v}_k)$,
+%$\MPCAngle{\widehat{p}_\varrho,\sigma'}\Downarrow_\varrho^{\Pub} \sigma_1':v$
+%and $\MPCAngle{\widehat{p}_\varrho,\sigma}\Downarrow_\varrho^{\Pub} \sigma_1:v$ are identical.
+Suppose that ${\Pif} \ x \ {\Pthen} \  p_1 \ {\Pelse} \ p_2$ is not used with secret-dependent conditions.
+Let $\varrho'$ be the security policy $\varrho[x\mapsto \Pub]$. It is easy to see that
+$\Enc_{\varrho'}(1,p)$ does not raise any errors.
+Therefore, to declassify  $x$,
+we need to ensure that %$\varrho'\models_p f(x_1,\cdots, x_n)$, i.e.,
+$\MPCAngle{\widehat{p}_{\varrho'},\sigma'}\Downarrow_{\varrho'}^{\Pub} \sigma_1':v$
+and $\MPCAngle{\widehat{p}_{\varrho'},\sigma}\Downarrow_{\varrho'}^{\Pub} \sigma_1:v$ are identical
+for every adversary-chosen private inputs  $\vec{v}_k\in\Dom^k$, result $v\in\Rng$,
+and states $\sigma,\sigma'\in\leak_{\tt iw}^p(v,\vec{v}_k)$.
+However, %it is challenging,
+as the number of the initial states may be large and even infinite,
+it is infeasible to  check all pairs of executions.
+
+We propose to use symbolic executions to represent the potentially infinite sets of (concrete) executions. %where
+%one symbolic execution $t$ denotes a set of executions $C$.
+Each symbolic execution $t$ is associated with a path condition $\phi$ which denotes the set of initial states satisfying $\phi$, from each of which the execution  has the same sequence of statements.
+Thus, the conjunction $\phi\wedge e=v$, where $e$ is the symbolic return value and $v$ is concrete value,
+%of the path condition $\phi$ with the symbolic return value $e$ being a concrete value $v$
+represents the set of initial states from which the executions have the same sequence of statements
+and returns the same result $v$. It is not difficult to observe that checking  whether $x$ in ${\Pif} \ x \ {\Pthen} \  p_1 \ {\Pelse} \ p_2$
+can be declassified amounts to checking whether for every pair of symbolic executions
+$t_1$ and $t_2$ that both include ${\Pif} \ x \ {\Pthen} \  p_1 \ {\Pelse} \ p_2$,
+$x$ has the same truth value in $t_1$ and $t_2$ whenever $t_1$ and $t_2$ return the same value. This can be solved
+by invoking off-the-shelf SMT solvers.
+
+%In the rest of this section, we first introduce the symbolic semantics and
+%then present our approach to automatically identity secret branching variables that can be declassified
+%via reasoning about pairs of symbolic executions.
+%Since a secret variable $x$ may be used in multiply statements, where some occurrences of $x$ can be publicable while
+%the other occurrences of $x$ cannot be publicable,
+
+
+\subsection{Symbolic Semantics}
+Let $\Exp$ denote the set of expressions over the private input variables $\vec{x}$ and constants.
+A \emph{path condition} $\phi\in\Exp$ is a conjunction of Boolean expressions.
+A state $\sigma\in\InitState_0$ satisfies $\phi$, denoted by $\sigma\models \phi$, if
+$\phi$ evaluates to $\True$ under $\sigma$. %when the private input variables $x_i$ are replaced by their values $\sigma(x_i)$.
+A \emph{symbolic state} $\alpha$ is a function $\Var\rightarrow \Exp$ that maps variables to symbolic
+expressions. $\alpha(e)$ denotes the symbolic value of the expression
+$e$ under $\alpha$, obtained from $e$ by replacing each occurrence
+of variable $x$ by $\alpha(x)$.
+The initial symbolic state, denoted by $\alpha_0$,
+is the identity function over the private input variables $\vec{x}$.
+
+
+\begin{figure}[t]
+    \centering
+\scalebox{0.9}{	
+\begin{tabular}{cc}
+%\hline \specialrule{0em}{3pt}{3pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    $\begin{array}{c}
+        \hline
+        \SymMPCAngle{x=e, \alpha,\phi} \hookrightarrow \SymMPCAngle{{\Pskip}, \alpha[x\mapsto \alpha(e),\phi]}
+    \end{array}$ &
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        $\begin{array}{c}
+   \hline
+        \SymMPCAngle{{\Preturn} \ x, \alpha,\phi} \hookrightarrow \SymMPCAngle{{\Pskip}, \alpha,\phi}
+    \end{array}$ \\ \specialrule{0em}{3pt}{3pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   $\begin{array}{c}
+     \makecell[l]{\SymMPCAngle{p_{1}, \alpha_{1},\phi_1}             \hookrightarrow      \SymMPCAngle{ {\Pskip}, \alpha_{2}, \phi_2} \\
+     \SymMPCAngle{p_{2}, \alpha_{2},\phi_2}    \hookrightarrow   \SymMPCAngle{ p_{2}' , \alpha_{3},\phi_3 }} \\
+        \hline
+     \SymMPCAngle{p_{1};p_{2}, \alpha_{1},\phi_1}       \hookrightarrow   \SymMPCAngle{p_{2}', \alpha_{3},\phi_3 }
+    \end{array}$ &
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    $\begin{array}{c}
+      \makecell[c]{\SymMPCAngle{p_1,\alpha_{1},\phi_1}    \hookrightarrow    \SymMPCAngle{ p_1', \alpha_{2},\phi_2}    \\     p_{1}' \neq {\Pskip}}\\
+        \hline
+      \SymMPCAngle{p_{1} ; p_{2}, \alpha_{1},\phi_1} \hookrightarrow \SymMPCAngle{p_1^{\prime};p_2, \alpha_{2},\phi_2}
+    \end{array}$  \\ \specialrule{0em}{3pt}{3pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ $\begin{array}{c}
+      \SAT(\phi') \quad \phi'= \phi\wedge \alpha(x)\\
+        \hline
+     \SymMPCAngle{{\Pif} \ x \ {\Pthen} \  p_1 \ {\Pelse} \ p_2, \alpha,\phi}   \hookrightarrow  \SymMPCAngle{p_1,\alpha,\phi'}
+    \end{array} $ \qquad\qquad&
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ $\begin{array}{c}
+      \SAT(\phi') \quad \phi'=\phi\wedge \neg\alpha(x)\\
+        \hline
+       \SymMPCAngle{{\Pif} \ x \ {\Pthen} \  p_1 \ {\Pelse} \ p_2, \alpha,\phi}   \hookrightarrow  \SymMPCAngle{p_2,\alpha,\phi'}
+    \end{array} $ \\ \specialrule{0em}{3pt}{3pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   $ \begin{array}{c}
+        \SAT(\phi')\quad \phi'=\phi\wedge \alpha(x) \quad p'= p;{\Pwhile} \ x \ \Pdo \ p \\
+        \hline
+    \SymMPCAngle{{\Pwhile} \ x \ \Pdo \ p, \alpha,\phi}\hookrightarrow  \SymMPCAngle{p',\alpha,\phi'}
+    \end{array}$ \qquad \qquad&
+       $ \begin{array}{c}
+          \SAT(\phi')\quad \phi'=\phi\wedge \neg\alpha(x)  \quad p'=\ {\Pskip} \\
+        \hline
+       \SymMPCAngle{{\Pwhile} \ x \ \Pdo \ p, \alpha,\phi}\hookrightarrow  \SymMPCAngle{p',\alpha,\phi'}
+    \end{array}$  \\ \specialrule{0em}{3pt}{3pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\multicolumn{2}{c}{$\begin{array}{c}
+      p'= ( n\geq 1) \ ? \ p;{\Prepeat} \ n-1 \ \Pdo \ p \ : \ {\Pskip} \\
+        \hline
+        \SymMPCAngle{{\Prepeat} \ n \ \Pdo \ p, \alpha,\phi}\hookrightarrow  \SymMPCAngle{p',\alpha,\phi}
+    \end{array}$  }\\
+   \specialrule{0em}{3pt}{3pt}    \hline
+    \end{tabular}}
+\vspace{-2mm}
+    \caption{The symbolic semantics of {\LANG} programs}
+    \label{fig:symbsemantics}
+\vspace{-3mm}
+    % instrumented semantics
+\end{figure}
+
+The symbolic semantics of {\LANG} programs is defined by transitions between symbolic configurations, as shown in Fig.~\ref{fig:symbsemantics},
+where $\SAT(\phi)$ is {\True} iff the constraint $\phi$ is satisfiable. %, otherwise {\False}.
+A \emph{symbolic configuration} is a tuple $\SymMPCAngle{p, \alpha,\phi}$, where $p$ is a statement, $\alpha$ is a symbolic state,
+and $\phi$ is the path condition that should be satisfied to reach $\SymMPCAngle{p, \alpha,\phi}$.
+$\SymMPCAngle{p, \alpha,\phi}\hookrightarrow \SymMPCAngle{p', \alpha',\phi'}$ denotes a transition from %a symbolic configuration
+$\SymMPCAngle{p, \alpha,\phi}$ to %a symbolic configuration
+$\SymMPCAngle{p', \alpha',\phi'}$.
+The symbolic semantics is almost the same as the operational semantics except that
+(1) the path conditions are collected and checked for conditional statements and {\Pwhile} loops,
+and (2) the transition may be non-deterministic if both $\phi\wedge \alpha(x)$
+and $\phi\wedge \neg\alpha(x)$ are  satisfiable.
+
+We denote by $\hookrightarrow^*$ the transitive closure of $\hookrightarrow$, where its path condition %of the
+is the conjunction of that of each transition. %along the  transitions are connected by conjunctions, i.e., logical-AND ($\wedge$), resulting
+%in the path condition of the symbolic execution.
+An \emph{symbolic execution} starting from a symbolic configuration $\SymMPCAngle{p, \alpha,\phi}$ is a sequence of symbolic configurations, written as $\SymMPCAngle{p, \alpha,\phi}\Downarrow
+(\alpha',\phi')$,
+if $\SymMPCAngle{p, \alpha,\phi}\hookrightarrow^* \SymMPCAngle{{\Pskip}, \alpha',\phi'}$.
+Moreover, we denote by $\SymMPCAngle{p, \alpha,\phi}\Downarrow
+(\alpha',\phi'):e$
+the symbolic execution $\SymMPCAngle{p, \alpha,\phi}\Downarrow
+(\alpha',\phi')$ with the symbolic return value $e$.
+%
+We denote by {\SymExe} the set of all the symbolic executions $\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+(\alpha,\phi):e$ of the program $p$.
+Note that $\alpha_0$ is the initial symbolic state.
+Recall that we assumed all the (concrete) executions always terminate,
+thus {\SymExe} is a finite set of finite sequence of symbolic configurations.
+
+\subsection{Relating Symbolic Executions to Concrete Executions}
+A symbolic execution $t=\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+(\alpha,\phi):e$ represents the set of (concrete) executions
+starting from the states $\sigma\in \InitState_0$ such that
+$\sigma\models \phi$. Formally, consider $\sigma\in  \InitState_0$ such that
+$\sigma\models \phi$, by concretizing all the symbolic values
+of variables $x$ in each symbolic state $\alpha'$ with concrete values $\sigma(\alpha'(x))$ and projecting out all the path conditions,
+the symbolic execution $t$ is the execution $\MPCAngle{p, \sigma}\Downarrow \sigma': \sigma(e)$, written as
+$\sigma(t)$. For the execution $\MPCAngle{p, \sigma}\Downarrow \sigma': v$,
+there are a unique symbolic execution $t$ such that $\sigma(t)=\MPCAngle{p, \sigma}\Downarrow \sigma': v$
+and a unique execution $\MPCAngle{\widehat{p}_\varrho, \sigma}\Downarrow \sigma': v$ in the program $\widehat{p}_\varrho$.
+%Furthermore, there exists one corresponding execution $\MPCAngle{\widehat{p}_\varrho, \sigma}\Downarrow \sigma': v$,
+We denote by $\RW_{\varrho,\sigma}(t)$
+the execution $\MPCAngle{\widehat{p}_\varrho, \sigma}\Downarrow_\varrho \sigma': v$
+and denote by $\RW_{\varrho,\sigma}^{\Pub}(t)$
+the sequence $\MPCAngle{\widehat{p}_\varrho, \sigma}\Downarrow_\varrho^{\Pub} \sigma': v$.
+%and denoted by ${\tt Stmt}_{\widehat{p}_\varrho}(t)$ the sequence of statements in $\MPCAngle{\widehat{p}_\varrho, \sigma}\Downarrow_\varrho^{\Pub} \sigma': v$.
+%Remark that $\MPCAngle{\widehat{p}_\varrho, \sigma}\Downarrow_\varrho^{\Pub} \sigma': v$ for all $\sigma\in \InitState_0$ such that
+%$\sigma\models \phi$ have the same sequence of statements.
+
+%
+%
+%Since the execution $\sigma(\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+%(\alpha,\phi):e)$ has a unique corresponding execution $\sigma(\SymMPCAngle{\widehat{p}_\varrho, \alpha_0,\True}\Downarrow
+%(\alpha,\phi):e)$ and vice versa,
+%Therefore, we can denote by $\RW_{\varrho,\sigma}(\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+%(\alpha,\phi):e)$ and $\RW_{\varrho,\sigma}^{\Pub}(\SymMPCAngle{p, \alpha_0,\True}\Downarrow_\varrho^{\Pub}
+%(\alpha,\phi):e)$ the executions $\sigma(\SymMPCAngle{\widehat{p}_\varrho, \alpha_0,\True}\Downarrow
+%(\alpha,\phi):e)$ and $\sigma(\SymMPCAngle{\widehat{p}_\varrho, \alpha_0,\True}\Downarrow_\varrho^{\Pub}
+%(\alpha,\phi):e)$, respectively.
+
+
+
+For every adversary-chosen private inputs $\vec{v}_k\in\Dom^k$, result $v\in\Rng$,
+and  initial state $\sigma\in\leak_{\tt iw}^p(v,\vec{v}_k)$,
+we can reformulate the set $\leak_{\tt rw}^{p,\varrho}(v,\sigma)$ as follows.
+(Recall that $\leak_{\tt rw}^{p,\varrho}(v,\sigma)$ is
+the set of states $\sigma'\in\leak_{\tt iw}^p(v,\vec{v}_k)$ such that
+$\MPCAngle{\widehat{p}_\varrho,\sigma'}\Downarrow_\varrho^{\Pub} \sigma_1':v$
+and $\MPCAngle{\widehat{p}_\varrho,\sigma}\Downarrow_\varrho^{\Pub} \sigma_1:v$ are identical.)
+%Suppose $t=\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+%(\alpha,\phi):e$ is the symbolic execution such that $\RW_{\varrho,\sigma}(t)$ is the execution starting from $\MPCAngle{\widehat{p}_\varrho, \sigma}$.
+%This implies that $\sigma\models \phi\wedge e=v$.
+
+\begin{proposition}\label{prop:symbleakage}
+For each state $\sigma'\in\leak_{\tt iw}^p(v,\vec{v}_k)$,
+$\sigma'\in\leak_{\tt rw}^{p,\varrho}(v,\sigma)$ iff for every symbolic execution $t'=\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+(\alpha',\phi'):e'\in \SymExe$ such that $\sigma'\models \phi'\wedge e'=v$,   $\RW_{\varrho,\sigma}^{\Pub}(t)$ and $\RW_{\varrho,\sigma'}^{\Pub}(t')$ are identical,
+where $t$ is a symbolic execution $\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+(\alpha,\phi):e$ such that $\sigma\models \phi\wedge e=v$.
+\end{proposition}
+
+Proposition~\ref{prop:symbleakage} allows to consider only the symbolic executions $\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+(\alpha,\phi):e\in \SymExe$ such that $\sigma\models \phi\wedge e=v$ when checking
+if $\varrho$ is perfect or not.
+%The set $\Sigma^p_{v,v_1,\cdots,v_k}$ can be characterized by the satisfying models of the conjunction of
+%the constraints $\phi_i\wedge e_i=v$, where the symbolic executions $\SymMPCAngle{p, \alpha_0,\True}\Downarrow_\varrho^{\Pub}
+%(\alpha_i,\phi_i):e_i$ have the same observable executions $\RW_\sigma(\SymMPCAngle{p, \alpha_0,\True}\Downarrow_\varrho^{\Pub}
+%(\alpha_i,\phi_i):e_i)$ for every $\sigma\in \Sigma^p_{v,v_1,\cdots,v_k}$.
+
+
+%Moreover, we observe that the equivalence of $\RW_\sigma(\SymMPCAngle{p, \alpha_0,\True}\Downarrow_\varrho^{\Pub}
+%(\alpha,\phi):e)$ and $\RW_{\sigma'}(\SymMPCAngle{p, \alpha_0,\True}\Downarrow_\varrho^{\Pub}
+%(\alpha',\phi'):e')$ can be represented by
+%a constraint, ensuring that for each pair of corresponding symbolic states
+%$(\alpha,\alpha')$ in two symbolic executions,
+%for each public variable $x$, the symbolic values $\alpha(x)$
+%and $\alpha'(x)$ are equivalent under the assignments $\sigma$ and $\sigma'$, respectively.
+%Formally, $\Sigma^{p,\varrho}_{v,\sigma}$ is the set of satisfying models
+%of the following logical constraint:
+%
+%\begin{align*}
+%& \bigwedge_{i=1}^k x_i=v_i  \wedge \forall \SymMPCAngle{p, \alpha_0,\True}\Downarrow
+%(\alpha',\phi'):e'\in \SymExe. \phi'\wedge e'=v \Rightarrow \\
+% & |\sigma(\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+%(\alpha,\phi):e)|=|\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+%(\alpha',\phi'):e'|\\
+%\end{align*}
+%\[\wedge \bigwedge_j  \]
+%
+% Let $f$ be the initial state that
+%maps private input variables $x_i$ to their primed versions $x_i'$.
+%Then, $\RW_\sigma(\SymMPCAngle{p, \alpha_0,\True}\Downarrow_\varrho^{\Pub}
+%(\alpha,\phi):e)$ and $\RW_{\sigma'}(\SymMPCAngle{p, \alpha_0,\True}\Downarrow_\varrho^{\Pub}
+%(\alpha',\phi'):e')$ are equivalent, denoted by $\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+%(\alpha,\phi):e\simeq_{\Pub}\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+%(\alpha',\phi'):e'$ iff
+%\[|\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+%(\alpha,\phi):e|=|\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+%(\alpha',\phi'):e'|\wedge \bigwedge_j \]
+%
+%
+% , ensuring that for each pair of corresponding symbolic states
+%$(\alpha,\alpha')$ in two symbolic executions,
+%for each public variable $x$, the symbolic values $\alpha(x)$
+%and $\alpha'(x)$ are equivalent under the assignments $\sigma$ and $\sigma'$, respectively.
+%Therefore, $\Sigma^{p,\varrho}_{v,\sigma}$ is the same as the following set:
+%\[\{\sigma\in \Sigma^p_{v,v_1,\cdots,v_k}\mid \} \]
+%
+%\[\bigwedge_{\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+%(\alpha,\phi):e\in \SymExe}  (\phi\wedge e=v) \]
+%
+%
+%In the next section, we will leverage this observation to identify secret variables
+%that cannot declassified.
+
+
+\subsection{Reasoning about Symbolic Executions}
+We leverage Proposition~\ref{prop:symbleakage} to identify secret variables
+that can be declassified  without compromising the security by reasoning about symbolic executions. %Instead of checking all the possible variables,
+%we will check secret conditions in the least IFP $\varrho$ obtained by our type system
+%by reasoning about symbolic executions.
+%
+%We start by introducing some notations.
+%Let us fix a secret condition $x$ of ${\Pif} \ x \ {\Pthen} \  p' \ {\Pelse} \ p''$ and a secure IFP $\varrho$.
+For each expression $\phi\in \Exp$,
+$\Primed(\phi)$ denotes the ``primed" expression $\phi$ where each  private input variable $x_i$
+is replaced by $x_i'$ (i.e.,  its primed version).
+
+Consider two symbolic executions
+$t=\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+(\alpha,\phi):e$ and $t'=\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+(\alpha',\phi'):e'$. Assume ${\Pif} \ x \ {\Pthen} \  p' \ {\Pelse} \ p''$ is not used with any secret-dependent conditions.
+Recall that we assumed  $x$ is used only in ${\Pif} \ x \ {\Pthen} \  p' \ {\Pelse} \ p''$.
+Then, $t$ and $t'$ execute the same subsequence (say $p_1,\cdots,p_m$) of the statements that are ${\Pif} \ x \ {\Pthen} \  p' \ {\Pelse} \ p''$.
+Let $e_1,\cdots,e_m$ (resp. $e_1',\cdots,e_m'$) be symbolic values of $x$
+when executing $p_1,\cdots,p_m$ in the symbolic execution $t$ (resp. $t'$).
+Define the constraint $\Psi_x(t,t')$ as
+\begin{center}
+ $\Psi_x(t,t') \triangleq\big(\phi\wedge \Primed(\phi')\wedge e=\Primed(e')\big)\Rightarrow \big(\bigwedge_{i=1}^m e_i=\Primed(e_i')\big)$
+\end{center}
+
+%
+%added into the path condition $\phi$
+%(resp. $\phi'$) for the statement ${\Pif} \ x \ {\Pthen} \  p' \ {\Pelse} \ p''$.
+%For instance, if $x$ has symbolic value $\alpha(x)$ and the symbolic execution goes to the then-branching
+%(resp. else-branching), then $\alpha(x)$  (resp. $\neg\alpha(x)$) is added into the path condition.
+%Define the constraint $\Psi_x(t,t')$ as:
+%%
+%\begin{center}
+%$\Psi_x(t,t') \triangleq\big(\phi\wedge \Primed(\phi')\wedge e=\Primed(e')\big)\Rightarrow \big(\bigwedge_{i=1}^m \Primed(e_i)\wedge \bigwedge_{i=1}^h e_i'\big).$
+%\end{center}
+%
+Intuitively, $\Psi_x(t,t')$ asserts that for every pair of
+states $\sigma,\sigma'\in \InitState_0$
+if  $\sigma$ (resp. $\sigma'$ ) satisfies the path condition $\phi$ (resp. $\phi'$), $\sigma(e)$
+and $\sigma'(e')$ are identical, then for each $1\leq i\leq m$,  
+the values of $x$ are the same when executing the conditional statement $p_i$ in both $\RW_{\varrho,\sigma}(t)$ and $\RW_{\varrho,\sigma'}(t')$.
+
+
+%Intuitively, $\Psi_x(t,t')$ asserts that for every pair of
+%initial states $\sigma,\sigma'\in \InitState_0$
+%if $\sigma$ (resp. $\sigma'$ ) satisfies the path condition $\phi$ (resp. $\phi'$),
+%$\sigma(e)$ and $\sigma'(e')$ are identical,
+%then
+%$e_i$ for all $1\leq i\leq m$ are true under the initial state $\sigma'$
+%and $e_i'$ for all $1\leq i\leq h$ are true under the initial state $\sigma$.
+%Note that $e_i$ for all $1\leq i\leq m$ (resp. $e_i'$ for all $1\leq i\leq h$) are already true under the initial state $\sigma$
+%(resp. $\sigma'$).
+
+%
+% such that ${\tt Stmt}_{\widehat{p}_\varrho}(t)$
+%and ${\tt Stmt}_{\widehat{p}_\varrho}(t')$ are the same,
+%namely, $\RW_{\varrho,\sigma}^{\Pub}(t)$ and $\RW_{\varrho,\sigma'}^{\Pub}(t')$
+%have the same sequence of statements for all $\sigma,\sigma'\in \leak_{\tt iw}^p(v,v_1,\cdots,v_k)$
+%such that $\sigma\models \phi$  and $\sigma\models \phi'$.
+%Since $x$ has type $\Sec$ in $\varrho$, the
+%statement ${\Pif} \ x \ {\Pthen} \  p' \ {\Pelse} \ p''$
+%must be replaced by $\Enc_\varrho(c\& x, p');\Enc_\varrho(c\& \neg x, p'')$ in
+%the program $\widehat{p}_\varrho$ for some Boolean expression $c$.
+%This implies that $t$ and $t$ have the same subsequence of statements $p_1,\cdots,p_m$
+%that are ${\Pif} \ x \ {\Pthen} \  p' \ {\Pelse} \ p''$.
+%Let  $e_1,\cdots,e_m$ (resp. $e_1',\cdots,e_m'$) be the symbolic values
+%of $x$ in the corresponding symbolic states $\alpha_{1},\cdots,\alpha_{m}$ (resp. $\alpha_{1}',\cdots,\alpha_{m}'$) of $p_1,\cdots,p_m$ in the symbolic execution $t$
+%(resp. $t'$).
+%Define the constraint $\Psi_x(t,t')$ as:
+%%
+%\begin{center}
+%$\Psi_x(t,t') \triangleq\big(\phi\wedge \Primed(\phi')\wedge e=\Primed(e')\big)\Rightarrow \bigwedge_{i=1}^m e_i=\Primed(e_i').$
+%\end{center}
+%%
+%Intuitively, $\Psi_x(t,t')$ asserts that for every pair of
+%initial states $\sigma,\sigma'\in \InitState_0$
+%such that $\sigma$ (resp. $\sigma'$ ) satisfies the path condition $\phi$ (resp. $\phi'$), $\sigma(e)$
+%and $\sigma'(e')$ are identical, we have: for each $1\leq i\leq m$, the secret condition $x$
+%at the conditional statement $p_i$ has the same value in the symbolic states $\alpha_{i}$
+%and $\alpha_{i}'$.
+
+\begin{proposition}\label{prop:symbleakage2}
+For each pair of
+states $\sigma,\sigma'\in\leak_{\tt iw}^p(v,\vec{v}_k)$ such that
+$\sigma\models \phi\wedge e=v$ and $\sigma'\models \phi'\wedge e'=v$,
+if $\Psi_x(t,t')$ is valid and $\RW_{\varrho,\sigma}^{\Pub}(t)$ and $\RW_{\varrho,\sigma'}^{\Pub}(t')$ are identical,
+then $\RW_{\varrho',\sigma}^{\Pub}(t)$ and $\RW_{\varrho',\sigma'}^{\Pub}(t')$ are identical,
+where $\varrho'=\varrho[x\mapsto \Pub]$.
+\end{proposition}
+
+Recall that  $x$ can be declassified in a perfect security policy $\varrho$
+if $\varrho'=\varrho[x\mapsto \Pub]$ is still perfect, namely, $\MPCAngle{\widehat{p}_{\varrho'},\sigma'}\Downarrow_{\varrho'}^{\Pub} \sigma_1':v$
+and $\MPCAngle{\widehat{p}_{\varrho'},\sigma}\Downarrow_{\varrho'}^{\Pub} \sigma_1:v$ are identical
+for every adversary-chosen private inputs $\vec{v}_k\in\Dom^k$, result $v\in\Rng$,
+and states $\sigma,\sigma'\in\leak_{\tt iw}^p(v,\vec{v}_k)$.
+By Proposition~\ref{prop:symbleakage2},
+if  $\Psi_x(t,t')$ is valid for each pair of symbolic executions $t,t'\in\SymExe$,
+we can deduce that $\varrho'$ is still perfect.
+
+\begin{theorem}\label{thm:mainresult}
+If $\varrho\models_p f(\vec{x})$ and $\Psi_x(t,t')$ is valid for each pair of symbolic executions $t,t'\in\SymExe$,  %such that ${\tt Stmt}_{\widehat{p}_\varrho}(t)$
+%and ${\tt Stmt}_{\widehat{p}_\varrho}(t')$ are identical,
+then $\varrho[x\mapsto \Pub]\models_p f(\vec{x})$.
+\end{theorem}
+
+\begin{example}
+Consider two symbolic executions $t$ and $t'$ in the motivating example
+such that the path condition $\phi$ (resp. $\phi'$) of $t$ (resp. $t'$)
+is ${\tt a}\geq{\tt b}\wedge {\tt c}>{\tt a}$ (resp. ${\tt a}<{\tt b}\wedge {\tt c}>{\tt b}$),
+and both return the result 3.
+The secret branching variable {\tt c2} has the symbolic values ${\tt c}>{\tt a}$ (resp. ${\tt c}>{\tt b}$)
+in $t$ and $t'$, respectively.
+%For the secret condition {\tt c2},  ${\tt c}>{\tt a}$ (resp. ${\tt c}>{\tt b}$) is added into $\phi$
+%(resp. $\phi'$).
+Then
+\[\Psi_{\tt c2}(t,t')=\left\{\begin{array}{c}
+  \big(({\tt a}\geq{\tt b}\wedge {\tt c}>{\tt a})\wedge\\
+  ({\tt a}'<{\tt b}'\wedge {\tt c}'>{\tt b}')\wedge 3 =3\big)\\ \Rightarrow
+  \big(({\tt c}>{\tt a})= ({\tt c}'>{\tt b}')\big)\\
+\end{array}\right\}.\]
+Obviously, $\Psi_{\tt c2}(t,t')$ is valid.
+We can show that for any other pair $(t,t')$ of symbolic executions,
+$\Psi_{\tt c2}(t,t')$ is always valid.
+Therefore, the secret branching variable {\tt c2} can be declassified in any perfect security policy $\varrho$.
+
+In contrast, the secret branching variable {\tt c1} has the symbolic value ${\tt a}<{\tt b}$
+in both $t$ and $t'$. Then,
+\[\Psi_{\tt c1}(t,t')=\left\{\begin{array}{c}
+  \big(({\tt a}\geq{\tt b}\wedge {\tt c}>{\tt a})\wedge\\
+  ({\tt a}'<{\tt b}'\wedge {\tt c}'>{\tt b}')\wedge 3 =3\big)\\ \Rightarrow
+  \big(({\tt a}<{\tt b})= ({\tt a}'<{\tt b}')\big)\\
+\end{array}\right\}.\]
+$\Psi_{\tt c1}(t,t')$ is not valid, thus the secret branching variable {\tt c1} cannot be declassified.
+\end{example}
+
+\noindent
+{\bf Refinement}.
+Theorem~\ref{thm:mainresult} allows us to
+check if the secret branching variable $x$ of a conditional statement ${\Pif} \ x \ {\Pthen} \  p' \ {\Pelse} \ p''$ that does not used with
+any secret-dependent conditions can be declassified.
+%
+After that, if $x$ can be declassified without compromising the security,
+we feed back the result to the type system before checking the next secret branching variable.
+This allows us to refine the security level of variables that are updated in branches, namely,
+the type inference rule {\sc T-If} is refined into the following one:
+
+\begin{center}
+$\dfrac{\makecell[c]{\cxt'= (\mbox{can $x$ be declassified } \ ? \ \Pub:\varrho(x)) \\ \cxt\sqcup \cxt'\vdash p_1:\varrho\Rightarrow\varrho_1 \quad \cxt\sqcup \cxt' \vdash p_2:\varrho\Rightarrow\varrho_2 \quad\varrho'=\varrho_1 \sqcup\varrho_2 }}{\cxt \vdash {\Pif} \ x \ {\Pthen} \  p_1 \ {\Pelse} \ p_2:\varrho\Rightarrow\varrho'}$[{\sc T-If}]
+\end{center}

@@ -1,0 +1,231 @@
+\section{Appendix}\label{sec:appendix}
+
+\subsection{MPC Protocols}\label{sec:protocols}
+In general, there are three fundamental protocols to achieve semi-honest security:
+garbled circuits~\cite{yao82,freexor,BeaverMR90}, secret sharing~\cite{Shamir79,GMW}, and homomorphic encryption~\cite{SHE},
+varying in their computational, circuit and communication complexity.
+
+\smallskip
+\noindent
+{\bf Garbled circuits}. The garbled circuit protocol was proposed by Yao for 2-party MPC.
+Roughly speaking,
+one party (say $\Party{1}$) encodes
+the computation $f(x_1,x_2)$ as a Boolean circuit $C$, then garbles it.
+The garbling procedure uses two random keys to denote the truth values of each wire
+and symmetric-key encrypts the circuit $C$, ensuring that learning one random key for each fan-in allows to decrypt exactly one output of fan-out for each gate.
+Next, $\Party{1}$ sends the garbled circuit, random keys of the truth values of $\Party{1}$'s private inputs,
+and all the random keys of $\Party{2}$'s private inputs
+to $\Party{2}$. %For each private input of the participant $\Party{2}$,
+$\Party{2}$ chooses the random keys of the truth values of her private inputs and evaluates the garbled circuit %$GC$ %using the random keys of the inputs
+%of both participants
+by performing symmetric-key decryption. % for every gate.
+%Recall that using one random key per input allows $\Party{2}$ to decrypt exactly one row of its garbled
+%truth-table.
+After successfully decrypting all the gates, $\Party{2}$ obtains the result of the garbled circuit
+and sends it back to $\Party{1}$, from which $\Party{1}$ can obtain the result $f(x_1,x_2)$ and reveals
+it to $\Party{2}$. To be semi-honest secure,
+%for each his/her private input,
+$\Party{2}$ is enforced to choose only one random key per $\Party{2}$'s private input and does not know the another random key, moreover, $\Party{1}$ does not know which random key
+was chosen by  $\Party{2}$.
+%This requirement is achieved via oblivious transfer~\cite{EvenGL85}.
+%During the execution of the protocol, both participants only send and receive random keys,
+%except for the final result $f(x_1,x_2)$.
+%Thus, it is semi-honest secure.
+Yao's garbled circuit protocol has been extended to multi-party MPC
+with a distributed garbling procedure~\cite{BeaverMR90}.
+
+
+\smallskip
+\noindent
+{\bf Secret sharing}. For an MPC application $f(\vec{x}_n)$, an $(n,t)$-secret sharing scheme   splits the private input $x_i$ of each party $\Party{i}$
+into $n$ shares using random values and sends $n-1$ shares to the other parties, one share per party.
+Any $t-1$ shares of the private input $x_i$ reveal no information of the private input $x_i$.
+The computation $f(\vec{x}_n)$  is transformed into a Boolean or arithmetic circuit $C$ according to the secret sharing scheme
+such that each party evaluates the circuit $C$ using the received shares from the other parties.
+The results of the circuit $C$ of all the parties form
+the share of the desired result $f(\vec{x}_n)$, from which
+each party can reconstruct the result $f(\vec{x}_n)$.
+For instance, using the Boolean secret sharing scheme, $x_i$ can be split into
+the shares $(x_i^1,\cdots,x_i^n)$, where $x_i^1,\cdots,x_i^{n-1}$ are uniformly sampled
+random values, $x_i^n=x_i^1\oplus \cdots\oplus x_i^{n-1}$ is the exclude-or of $x_i^1,\cdots,x_i^{n-1}$.
+Using the additive secret sharing scheme, an element $x_i$ of a finite field can be split into
+the shares $(x_i^1,\cdots,x_i^n)$,  $x_i^1,\cdots,x_i^{n-1}$ are uniformly sampled
+random values from a finite field, $x_i^n=x_i^1+ \cdots+ x_i^{n-1}$, where $+$ is the finite field addition operation.
+
+\medskip
+\noindent
+{\bf Homomorphic encryption}.
+Homomorphic encryption enables computations on ciphertexts to compute
+an encrypted result that, when decrypted, is the result $f(\vec{x}_n)$.
+For instance, to compute an MPC application $f(\vec{x}_n)$,
+all the parties encrypt their private inputs using the same public key
+and then send the encrypted inputs to an untrusted third party.
+The untrusted third party computes the encrypted result of $f(\vec{x}_n)$
+using the encrypted inputs and sends the result back to the parties.
+Finally, each party can obtain the result $f(\vec{x}_n)$ by decrypting
+the encrypted result.
+
+%The above three fundamental protocols are the base protocols for today's MPC.
+
+%
+%
+%Yao firstly introduced the MPC problem in the early 1980s \cite{EvansKR18}.
+%In \cite{yao82}, Yao proposed Yao's garbled circuit protocol for solving the MPC problem.
+%Goldreich et al. \cite{GMW} proposed an additive secret sharing approach to solve MPC.
+%A decade ago, Damg{\aa}rd et al. \cite{SHE} proposed a new MPC approach based on %a somewhat
+%homomorphic cryptosystems.
+%The above three protocols and their ideas became the basis of research work in the field of MPC protocol design.
+%Garbled circuits, secret sharing, and homomorphic encryption have become the base protocols for today's MPC implementations.
+%Due to the unresolved performance issues of homomorphic encryption, real-world MPC implementations tend to choose either garbled circuit-based protocols or secret-sharing-based protocols.
+%In the experiment section, we consider experiments on the implementation of these two protocols.
+
+
+
+\subsection{The Operational Semantics of {\LANG} Programs}
+\label{sec:semantics}
+The operational semantics of {\LANG} programs is shown in Fig.~\ref{fig:semantics}.
+\begin{figure}[t]
+    \centering
+\scalebox{0.9}{
+    \begin{tabular}{cc}
+%    \hline\specialrule{0em}{3pt}{3pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    $\begin{array}{c}
+     \hline
+        \MPCAngle{x=e, \sigma} \rightarrow \MPCAngle{{\Pskip}, \sigma[x\mapsto  \sigma(e)]}
+    \end{array}$ &
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        $\begin{array}{c}
+      %  \MPCState{e}{\sigma}=v \\
+     \hline
+        \MPCAngle{{\Preturn} \ x, \sigma} \rightarrow \MPCAngle{{\Pskip}, \sigma}
+    \end{array}$ \\ \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   $\begin{array}{c}
+        \MPCAngle{p_{1}, \sigma_{1}}             \rightarrow      \MPCAngle{ {\Pskip}, \sigma_{2} } \quad
+        \MPCAngle{p_{2}, \sigma_{2}}    \rightarrow   \MPCAngle{ p_{2}' , \sigma_{3} } \\
+        \hline
+        \MPCAngle{p_{1};p_{2}, \sigma_{1}}       \rightarrow   \MPCAngle{p_{2}', \sigma_{3}}
+    \end{array}$ \qquad\qquad&
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    $\begin{array}{c}
+        \MPCAngle{p_1,\sigma_{1}}    \rightarrow    \MPCAngle{ p_1', \sigma_{2}}    \quad     p_{1}' \neq {\Pskip} \\
+        \hline
+        \MPCAngle{p_{1} ; p_{2}, \sigma_{1}} \rightarrow \MPCAngle{p_1^{\prime};p_2, \sigma_{2}}
+    \end{array}$  \\ \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ $\begin{array}{c}
+        p= \sigma(x) \ ? \ p_1 : \ p_2 \\
+        \hline
+        \MPCAngle{{\Pif} \ x \ {\Pthen} \  p_1 \ {\Pelse} \ p_2, \sigma}   \rightarrow  \MPCAngle{p,\sigma}
+    \end{array} $ &
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   $ \begin{array}{c}
+        p'=\sigma(x) \ ? \ p;{\Pwhile} \ x \ \Pdo \ p \ : \ {\Pskip} \\
+        \hline
+        \MPCAngle{{\Pwhile} \ x \ \Pdo \ p, \sigma}\rightarrow  \MPCAngle{p',\sigma}
+    \end{array}$ \\ \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\multicolumn{2}{c}{$\begin{array}{c}
+      p'= ( n\geq 1) \ ? \ p;{\Prepeat} \ n-1 \ \Pdo \ p \ : \ {\Pskip} \\
+        \hline
+        \MPCAngle{{\Prepeat} \ n \ \Pdo \ p, \sigma}\rightarrow  \MPCAngle{p',\sigma}
+    \end{array}$ }\\ 
+    \specialrule{0em}{3pt}{3pt}\hline
+    \end{tabular}}
+    \caption{The operational semantics of {\LANG} programs}
+    \label{fig:semantics}
+    % instrumented semantics
+\end{figure}
+
+\subsection{Proof of Proposition~\ref{prop:NI2Sec}}
+{\bf Proposition~\ref{prop:NI2Sec}.}
+\textit{If $p$ is $\varrho$-noninterfering for a security policy $\varrho$, then $\varrho\models_p f(\vec{x})$.}
+%$\varrho$ is secure for the MPC application $f(x_1,\cdots, x_n)$
+%whose functionality is implemented in $p$.
+
+
+
+\begin{proof}
+Assume the program $p$ is $\varrho$-noninterfering.
+Consider the adversary-chosen  private inputs $\vec{v}_k\in\Dom^k$ for a constant $k\geq 1$, a result $v\in\Rng$ and a state $\sigma\in\leak_{\tt iw}^p(v,\vec{v}_k)$.
+Let $\MPCAngle{\widehat{p}_\varrho,\sigma}\Downarrow \sigma_1:v$ be the execution
+of $p$ starting from the state $\sigma$.
+It suffices to show that $\leak_{\tt iw}^p(v,\vec{v}_k)\subseteq\leak_{\tt rw}^{p,\varrho}(v,\sigma)$,
+as $\leak_{\tt iw}^p(v,\vec{v}_k)\supseteq\leak_{\tt rw}^{p,\varrho}(v,\sigma)$ always holds.
+We show that $\sigma'\in\leak_{\tt rw}^{p,\varrho}(v,\sigma)$ for every $\sigma'\in\leak_{\tt iw}^p(v,\vec{v}_k)$.
+
+Fix a state $\sigma'\in\leak_{\tt iw}^p(v,\vec{v}_k)$.
+Let $\MPCAngle{\widehat{p}_\varrho,\sigma'}\Downarrow \sigma_1':v'$
+be the execution of $p$ starting from the state $\sigma'$.
+From $\sigma'\in\leak_{\tt iw}^p(v,\vec{v}_k)$, we get that $v'=v$.
+Since $p$ is $\varrho$-noninterfering, we get that $\MPCAngle{\widehat{p}_\varrho,\sigma}\Downarrow_\varrho^{\Pub} \sigma_1:v$ and $\MPCAngle{\widehat{p}_\varrho,\sigma'}\Downarrow_\varrho^{\Pub} \sigma_1':v$
+are the same. Therefore, $\sigma'\in\leak_{\tt rw}^{p,\varrho}(v,\sigma)$.\qed
+\end{proof}
+
+
+
+
+\subsection{Proof of Proposition~\ref{prop:symbleakage2}}
+{\bf Proposition~\ref{prop:symbleakage2}.}
+\textit{For each pair of
+states $\sigma,\sigma'\in\leak_{\tt iw}^p(v,\vec{v}_k)$ such that
+$\sigma\models \phi\wedge e=v$ and $\sigma'\models \phi'\wedge e'=v$,
+if $\Psi_x(t,t')$ is valid and $\RW_{\varrho,\sigma}^{\Pub}(t)$ and $\RW_{\varrho,\sigma'}^{\Pub}(t')$ are identical,
+then $\RW_{\varrho',\sigma}^{\Pub}(t)$ and $\RW_{\varrho',\sigma'}^{\Pub}(t')$ are identical,
+where $\varrho'=\varrho[x\mapsto \Pub]$.}
+
+
+\begin{proof}
+Consider a pair of 
+states $\sigma,\sigma'\in\leak_{\tt iw}^p(v,\vec{v}_k)$ such that
+$\sigma\models \phi\wedge e=v$ and $\sigma'\models \phi'\wedge e'=v$.
+Suppose $\RW_{\varrho,\sigma}^{\Pub}(t)$ and $\RW_{\varrho,\sigma'}^{\Pub}(t')$ are identical.
+%Let $p_1,\cdots,p_m$ be the subsequence of the statements that are ${\Pif} \ x \ {\Pthen} \  p' \ {\Pelse} \ p''$ in $t$ and $t'$.
+%Let $e_1,\cdots,e_m$ (resp. $e_1',\cdots,e_m'$) be symbolic values of $x$
+%when executing $p_1,\cdots,p_m$ in the symbolic execution $t$ (resp. $t'$).
+
+
+Let $\Primed(\sigma')$ be the state such that for every private input variable $x_i$,
+$\Primed(\sigma')(x_i')=\sigma'(x_i)$.
+Then, the model $(\sigma,\Primed(\sigma'))$ satisfies the constraint $\phi\wedge \Primed(\phi')\wedge e=\Primed(e')$.
+Since $\Psi_x(t,t')$ is valid, the model $(\sigma,\Primed(\sigma'))$ also satisfies the constraint $\big(\bigwedge_{i=1}^m e_i=\Primed(e_i')\big)$.
+This implies that once the same conditional statement $p_i$ is executed in $\RW_{\varrho,\sigma}(t)$ and $\RW_{\varrho,\sigma'}(t')$, they enter the same branch.
+Therefore, $\RW_{\varrho',\sigma}^{\Pub}(t)$ and $\RW_{\varrho',\sigma'}^{\Pub}(t')$ are identical.
+\qed
+\end{proof}
+
+\subsection{Proof of Theorem~\ref{thm:mainresult}}
+{\bf Theorem~\ref{thm:mainresult}.}
+\textit{If $\varrho\models_p f(\vec{x})$ and $\Psi_x(t,t')$ is valid for each pair of symbolic executions $t,t'\in\SymExe$ %such that ${\tt Stmt}_{\widehat{p}_\varrho}(t)$
+%and ${\tt Stmt}_{\widehat{p}_\varrho}(t')$ are identical,
+then, $\varrho[x\mapsto \Pub]\models_p f(\vec{x})$.}
+
+
+\begin{proof}
+Suppose $\varrho\models_p f(\vec{x})$. Then $\Enc_\varrho(1,p)$ does not raise any errors,
+ and for every adversary-chosen private inputs $\vec{v}_k\in\Dom^k$, result $v\in\Rng$,
+and state $\sigma\in\leak_{\tt iw}^p(v,\vec{v}_k)$,
+$\leak_{\tt iw}^p(v,\vec{v}_k)=\leak_{\tt rw}^{p,\varrho}(v,\sigma).$
+We immediately get that $\Enc_{\varrho'}(1,p)$ does not raise any errors.
+It suffices to show that $\leak_{\tt rw}^{p,\varrho}(v,\sigma)=\leak_{\tt rw}^{p,\varrho'}(v,\sigma)$, where
+$\varrho'=\varrho[x\mapsto \Pub]$.
+Since the policy $\varrho'$ releases no less information than $\varrho$ to the adversary, then
+$\leak_{\tt rw}^{p,\varrho}(v,\sigma)\supseteq\leak_{\tt rw}^{p,\varrho'}(v,\sigma)$. % $\Sigma^{p,\varrho}_{v,\sigma}\supseteq\Sigma^{p,\varrho'}_{v,\sigma}$.
+We show that $\leak_{\tt rw}^{p,\varrho}(v,\sigma)\subseteq\leak_{\tt rw}^{p,\varrho'}(v,\sigma)$.
+The case where $|\leak_{\tt rw}^{p,\varrho}(v,\sigma)|\leq 1$ is trivial, as each concrete
+execution has a corresponding symbolic execution. We consider the case where $|\leak_{\tt rw}^{p,\varrho}(v,\sigma)|\geq 2$.
+
+Consider a pair of states $\sigma,\sigma'\in\leak_{\tt rw}^{p,\varrho}(v,\sigma)$.
+Then, $\MPCAngle{\widehat{p}_{\varrho},\sigma}\Downarrow_{\varrho}^{\Pub} \sigma_1:v$
+and $\MPCAngle{\widehat{p}_{\varrho},\sigma'}\Downarrow_{\varrho}^{\Pub} \sigma_1':v$ are identical.
+There exist two symbolic executions $t=\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+(\alpha,\phi):e, \ t'=\SymMPCAngle{p, \alpha_0,\True}\Downarrow
+(\alpha',\phi'):e'\in\SymExe$
+such that $\RW_{\varrho,\sigma}^{\Pub}(t) = \MPCAngle{\widehat{p}_{\varrho},\sigma}\Downarrow_{\varrho}^{\Pub} \sigma_1:v$ and
+$\RW_{\varrho,\sigma'}^{\Pub}(t')=\MPCAngle{\widehat{p}_{\varrho},\sigma'}\Downarrow_{\varrho}^{\Pub} \sigma_1':v$.
+By Proposition~\ref{prop:symbleakage2}, we get that
+ $\RW_{\varrho',\sigma}^{\Pub}(t)$ and $\RW_{\varrho',\sigma'}^{\Pub}(t')$ are identical.
+Thus, $\sigma,\sigma'\in\leak_{\tt rw}^{p,\varrho'}(v,\sigma)$.
+\qed
+\end{proof}

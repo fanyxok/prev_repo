@@ -1,0 +1,184 @@
+\documentclass[runningheads]{llncs}
+
+%\usepackage{ifpdf}
+%\ifpdf
+%  % pdf code
+%\else
+%  % dvi code
+%\fi
+
+\usepackage{hyperref}
+\usepackage{bookmark}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{stmaryrd}
+\usepackage{xspace}
+\usepackage{listings}
+\usepackage{graphicx,subfig}
+\usepackage{color}
+\usepackage{comment}
+%\theoremstyle{definition}
+%\newtheorem{theorem}{Theorem}
+%\newtheorem{corollary}{Corollary}
+%\newtheorem{definition}{Definition}
+%\usepackage{mathtools}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+%
+%
+\definecolor{mygreen}{rgb}{0.18, 0.55, 0.34}
+\definecolor{myred}{rgb}{1.0, 0.0, 0.31}
+\definecolor{purple}{rgb}{0.75, 0.0, 1.0}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{url}
+
+\pagestyle{plain}
+%\usepackage{multirow}
+%\usepackage{listings}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\SymMPCAngle}[1]{\lceil{#1}\rfloor}
+%\newcommand{\SymMPCState}[1]{\llbracket{#1}\rrbracket}
+
+\newcommand{\MPCAngle}[1]{\langle{#1}\rangle}
+\newcommand{\MPCState}[1]{\llbracket{#1}\rrbracket}
+\newcommand{\TNAME}{\textbf{PoS4MPC}\xspace}
+\newcommand{\LANG}{{\textsc{While}\xspace}}
+\renewcommand{\vec}[1]{\overline{\bf{#1}}}
+\newcommand{\seclev}{\mathbb{L}}
+
+\newcommand{\InitState}{{\sf State}}
+\newcommand{\RW}{{\sf RW}}
+\newcommand{\SymExe}{{\tt SymExe}}
+\newcommand{\False}{{\tt False}}
+\newcommand{\True}{{\tt True}}
+\newcommand{\SAT}{{\sf SAT}}
+\newcommand{\cxt}{{\sf c}}
+\newcommand{\Primed}{{\sf Primed}}
+\newcommand{\leak}{{\sf Leak}}
+\newcommand{\Enc}{\mathcal{T}}
+\newcommand{\Pdeclassify}{{\textcolor{cyan}{\sf declassify}}}
+\newcommand{\Sec}{{\textcolor{myred}{\tt Sec}}}
+\newcommand{\Pub}{{\textcolor{mygreen}{\tt Pub}}}
+\newcommand{\Pif}{{\textcolor{cyan}{\sf if}}}
+\newcommand{\Pthen}{{\textcolor{cyan}{\sf then}}}
+\newcommand{\Pelse}{{\textcolor{cyan}{\sf else}}}
+\newcommand{\Pwhile}{{\textcolor{cyan}{\sf while}}}
+\newcommand{\Prepeat}{{\textcolor{cyan}{\sf repeat}}}
+\newcommand{\Pskip}{{\textcolor{cyan}{\sf skip}}}
+\newcommand{\Pdo}{{\textcolor{cyan}{\sf do}}}
+\newcommand{\Pint}{{\textcolor{cyan}{\sf int}}}
+\newcommand{\Psint}{{\textcolor{cyan}{\sf sint}}}
+\newcommand{\Preturn}{{\textcolor{cyan}{\sf return}}}
+\newcommand{\obv}[1]{\textcolor{magenta}{\sf {#1}}}
+\newcommand{\Party}[1]{{\textcolor{blue}{\sf P_{#1}}}}
+\newcommand{\Trust}{{\textcolor{blue}{\sf T}}}
+\newcommand{\Dom}{\mathcal{D}}
+\newcommand{\Rng}{\mathcal{D}}
+\newcommand{\Var}{\mathcal{X}}
+\newcommand{\Exp}{\mathcal{E}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\DeclarePairedDelimiter\MPCState{\llbracket}{\rrbracket}
+%\DeclarePairedDelimiter\MPCAngle{\langle}{\rangle}
+%\DeclarePairedDelimiter\TNAME{\textit{TD}}{}
+%\DeclarePairedDelimiter\LANG{\textit{LangName}}{}
+% *** FLOAT PACKAGES ***
+%\usepackage{fixltx2e}
+%\usepackage{stfloats}
+%\fnbelowfloat
+% \usepackage{dblfloatfix}
+
+%\usepackage{stfloats}
+%\usepackage{tabularx}
+
+% *** PDF, URL AND HYPERLINK PACKAGES ***
+
+
+\lstdefinestyle{mystyle}{
+basicstyle=\ttfamily\small,
+breakatwhitespace=false,
+breaklines=true,
+captionpos=b,
+keepspaces=true,
+numbersep=5pt,
+showspaces=false,
+showstringspaces=false,
+showtabs=false,
+tabsize=2,
+otherkeywords ={bool},
+keywordstyle=\color{blue},
+}
+
+\newcommand{\authorComment}[3]
+{{\color{#1}\textbf{[\!\![\!\![\marginpar{\centering{\color{#1}\textbf{#2}}}~ #3 ]\!\!]\!\!]}}}
+\newcommand{\fu}[1]{\textcolor{purple}{#1}}
+\newcommand{\tl}[1]{\textcolor{blue}{#1}}
+\newcommand{\fan}[1]{\textcolor{cyan}{#1}}
+
+
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+\begin{document}
+\title{\TNAME: Automated Security Policy Synthesis for Secure Multi-Party Computation}
+
+\author{}
+\institute{}%First Author\inst{1}\orcidID{0000-1111-2222-3333} \and
+%Second Author\inst{2,3}\orcidID{1111-2222-3333-4444} \and
+%Third Author\inst{3}\orcidID{2222--3333-4444-5555}}
+%%
+%\authorrunning{F. Author et al.}
+%% First names are abbreviated in the running head.
+%% If there are more than two authors, 'et al.' is used.
+%%
+%\institute{Princeton University, Princeton NJ 08544, USA \and
+%Springer Heidelberg, Tiergartenstr. 17, 69121 Heidelberg, Germany
+%\email{lncs@springer.com}\\
+%\url{http://www.springer.com/gp/computer-science/lncs} \and
+%ABC Institute, Rupert-Karls-University Heidelberg, Heidelberg, Germany\\
+%\email{\{abc,lncs\}@uni-heidelberg.de}}
+%
+\maketitle              % typeset the header of the contribution
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Regular papers should not exceed 18 pages in LNCS format, not counting references and appendices.
+
+\begin{abstract}
+Secure multi-party computation (MPC) is a promising technique for privacy-persevering applications.
+A number of MPC frameworks have been proposed to reduce the burden of designing customized protocols, allowing non-experts to quickly develop and deploy MPC applications.
+To improve performance, recent MPC frameworks allow users to declare secret variables so that only these variables are to be protected. However, in practice, it could be highly non-trivial for non-experts to
+specify secret variables: declaring too many degrades the performance while declaring too less compromises privacy.
+%
+To address this problem, in this work, we propose an automated security policy synthesis approach to declare as few secret variables as possible but without compromising security. Our approach is a synergistic integration of type inference and symbolic reasoning. The former is able to quickly infer a sound, but sometimes conservative, security policy, whereas the latter allows to identify secret variables in a security policy that can be declassified in a precise manner. %without compromising security.
+Moreover, the results from the symbolic reasoning are fed back to type inference to refine the security types even further.
+%
+We implement our approach in a tool, named \TNAME.
+Experimental results on five typical MPC applications confirm the efficacy of our approach.
+\end{abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{sections/introduction.tex}
+\input{sections/motivation.tex}
+\input{sections/preliminaries.tex}
+\input{sections/language.tex}
+\input{sections/typesystem.tex}
+\input{sections/method.tex}
+%\input{sections/implementation.tex}
+\input{sections/impl_and_expr.tex}
+\input{sections/related_work.tex}
+\input{sections/conclusion.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\bibliographystyle{splncs04}
+\bibliography{mpc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\appendix
+\input{sections/appendix}
+\end{document}
+
+

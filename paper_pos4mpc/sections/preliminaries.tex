@@ -1,0 +1,148 @@
+\section{Secure MPC} \label{sec:preli}
+
+%In this section, we briefly recap secure multi-party computation (MPC)
+
+%and three fundamental protocols for implementing MPC applications.
+%Their relation is visually shown in Figure~\ref{fig:ideal-real} for 3-party MPC.
+
+
+
+%\subsection{Secure Multi-Party Computation}
+
+Fix a set of variables $\Var$ over a domain $\Dom$. We write $\vec{x}_n\in\Var^n$ and $\vec{v}_n\in \Dom^n$ for $x_1, \cdots, x_n$
+and $v_1, \cdots, v_n$ respectively.
+(The subscript $n$ may be dropped %from $\vec{x}_n$ and $\vec{v}_n$
+when it is clear from the context.)
+%When we  write $\vec{v}_n\in\Dom^n$ and $\vec{v}_k\in\Dom^k$ for $n\geq k$,
+%we mean that $\vec{v}_k$ is a prefix of $\vec{v}_n$.
+
+%We first define secure multi-party computation (MPC) in the ideal world
+%and then define MPC in the real world.
+
+\smallskip
+\noindent
+{\bf MPC in the ideal-world}. An $n$-party MPC application $f:\Dom^n\rightarrow \Rng$ is to confidentially compute a given function $f(\vec{x})$, where each party $\Party{i}$ for $1\leq i\leq n$ sends her
+private input $v_i\in \Dom$ to a TTP $\Trust$ which
+computes and returns the result $f(\vec{v})$ to all the parties.
+In the ideal world, an adversary that controls  any of the $n$ parties
+learns no more than the output $f(\vec{v})$ and the private inputs of the corrupted (dishonest) parties.
+%and the private inputs controlled by the adversary.
+
+We characterize the leakage of an MPC application $f(\vec{x})$  by
+a set of private inputs. %We start by introducing some notations.
+In the rest of this paper, we assume, w.l.o.g.,
+the first $k$ parties (i.e., $\Party{1},\cdots, \Party{k}$) are corrupted by the adversary for some $k\geq 1$.
+%
+For a given output $v\in \Rng$, let ${\simeq_v^f}\subseteq \Dom^n$ denote the set
+$\{\vec{v}\in \Dom^n\mid f(\vec{v})=v\}$.
+Intuitively, ${\simeq_v^f}$ is the set of the private inputs $\vec{v}\in \Dom^n$ under which  $f$ is evaluated to $v$.
+From the result $v$, the adversary is able to learn the set ${\simeq_v^f}$, but cannot
+%distinguish the private inputs
+tell which one from ${\simeq_v^f}$ given $v$. We refer to ${\simeq_v^f}$ as the \emph{indistinguishable space} of the private inputs w.r.t. the result $v$.
+The input domain $\Dom^n$ is then partitioned into indistinguishable spaces $\{\simeq_v^f\}_{ v\in \Rng}$.  % i.e.,  $\{\simeq_y^f\mid y\in \Rng\}$,
+%and the adversary only learns one set ${\simeq_v^f}$ from the partition $\{\simeq_v^f\}_{ v\in \Rng}$
+%for any result $v\in \Rng$.
+%
+
+When the adversary controls the parties $\Party{1},\cdots, \Party{k}$,
+she will learn the set  $\leak_{\tt iw}^f(v,\vec{v}_k): = \{(v_1,\cdots,v_n)\in\Dom^{n}\mid \vec{v}_k=v_1,\cdots,v_k\}\cap \simeq_v^f$, %\tl{i understand you introduced this before, but here it seems confusing. Shall we change it back?}
+%\{(v_1,\cdots,v_k, v'_{k+1}, \cdots, v_n')\mid (v_1,\cdots,v_k, v'_{k+1}, \cdots, v_n') \in {\simeq_v^f}\}$,
+from the result $v$ and the adversary-chosen private inputs $\vec{v}_k\in\Dom^k$.
+%(Note that the first $k$ values of $\vec{v}_n$ are $\vec{v}_k$).
+
+
+%
+%By slight abuse of notation, we denoted by $(v_1,\cdots, v_n)\simeq_v^f (v_1',\cdots, v_n')$,
+%for every $(v_1,\cdots, v_n),(v_1',\cdots, v_n')\in {\simeq_v^f}$.
+%The input domain $\Dom^n$ is then partitioned into the indistinguishable spaces $\{\simeq_v^f\}_{ v\in \Rng}$.  % i.e.,  $\{\simeq_y^f\mid y\in \Rng\}$,
+%%which is called the \emph{indistinguishable partition} of the input domain $\Dom^n$.
+%Therefore, the adversary only learns one indistinguishable space ${\simeq_v^f}$ from the  partition $\{\simeq_v^f\}_{ v\in \Rng}$
+%for any public output $v$.
+%%
+%When the adversary controls the participants $\Party{1},\cdots, \Party{k}$ (i.e.,
+%can choose the values of the private inputs $x_1,\cdots,x_k$ for those participants),
+%the adversary will learn the indistinguishable space $\{(v_1',\cdots, v_n')\in {\simeq_v^f}\mid v_1'=v_1,\cdots,v_k'=v_k\}$
+%from the public output $v$ and the adversary-chosen private inputs $(v_1,\cdots,v_k)$.
+%
+
+
+%Intuitively, if $(x_1,\cdots, x_n),(x_1',\cdots, x_n')\in {\simeq_y^f}$, i.e., $f(x_1,\cdots, x_n)=f(x_1',\cdots, x_n')=y$,
+%then $(x_1,\cdots, x_n)$ and $(x_1',\cdots, x_n')$ are equivalent w.r.t. to the computation
+%$f(x_1,\cdots, x_n)$.
+
+\begin{definition}[Leakage in the ideal-world]\label{def:leakageinIdeal}
+For an MPC application $f(\vec{x}_n)$, the leakage of computing
+$v=f(\vec{v}_n)$ in the ideal-world is $\leak_{\tt iw}^f(v,\vec{v}_k)$,
+for the adversary-chosen private inputs $\vec{v}_k\in\Dom^k$  and the result $v\in \Rng$.
+\end{definition}
+
+%Since the adversary chooses the private inputs $(v_1,\cdots,v_k)$
+%for $(x_1,\cdots,x_k)$ and the result $v\in \Rng$ uniquely determines the leakage of computing
+%$v=f(v_1,\cdots, v_n)$ for any $v_{k+1},\cdots,v_n$, we denote by $\leak_{\tt iw}(v=f(v_1,\cdots, v_k))$
+%the leakage of computing $v=f(v_1,\cdots, v_n)$ in the ideal world for any $v_{k+1},\cdots,v_n$.
+
+\smallskip
+\noindent
+{\bf MPC in the real-world}.
+%Since the presence of a fully trusted third party makes it imaginary in practice,
+An MPC application in the real-world is implemented using some MPC protocol $\pi$ (denoted by $\pi_f$)
+by which all the parties collaboratively compute $\pi_f(\vec{x})$ over their private inputs
+$\vec{v}$ without any TTP $\Trust$. %In general, there are three fundamental protocols to achieve semi-honest security:
+%garbled circuits~\cite{yao82,freexor,BeaverMR90}, secret sharing~\cite{Shamir79,GMW}, and homomorphic encryption~\cite{SHE},
+%varying in their computational, circuit and communication complexity.
+% via network communications,
+%where $\pi_f$ denotes the implementation of the computation $f$ using the protocol $\pi$.
+A brief introduction of three fundamental protocols can be found in  Appendix~\ref{sec:protocols}.
+
+There are generally two types of adversaries in the real world, i.e., semi-honest and malicious.
+An adversary is \emph{semi-honest} (a.k.a.\ passive) if the corrupted parties run the protocol honestly as specified, but may try to learn private information of other parties by observing
+the protocol execution (i.e., network messages and program states).
+An adversary is \emph{malicious} (a.k.a.\ active) if the corrupted parties
+can deviate arbitrarily from the prescribed protocol (e.g., control, manipulate,
+and inject messages) in an attempt to learn private information of the other parties.
+%
+In this work, we consider semi-honest adversaries, which are supported by most MPC frameworks (cf.~\cite{EvansKR18,spdz20})
+and %semi-honest
+often serve as a basis for MPC in more robust settings with powerful adversaries.
+%Recall that secure multi-party computation in real world is implemented using some protocol $\pi$.
+
+A protocol $\pi$ is (semi-honest) secure if what a (semi-honest) adversary can achieve in the real-world can also be achieved by a corresponding adversary in the ideal-world.
+Semi-honest security ensures that the corrupted parties learn no more information from executing the protocol than what they can learn from the result and the private inputs of the corrupted parties. Therefore,
+the leakage of an MPC application $f(\vec{x})$ in the real-world against
+the semi-honest adversary can also be characterized using the
+indistinguishability of private inputs.
+%Let $\leak_{\tt rw}(v=\pi_f(v_1,\cdots, v_n))\subseteq \Dom^n$ denote the leakage of computing $v=f(v_1,\cdots, v_n)$ in the real-world using
+%the protocol $\pi$.
+
+
+\begin{definition}\label{def:securityinIW}
+An MPC protocol $\pi$ is (semi-honest) secure
+if for any MPC application $f(\vec{x}_n)$, adversary-chosen private inputs $\vec{v}_k\in\Dom^k$
+and result $v\in \Rng$,
+the leakage of computing $v=\pi_f(\vec{v}_n)$  is $\leak_{\tt iw}^f(v,\vec{v}_k)$. %=\leak_{\tt rw}(v=\pi_f(v_1,\cdots, v_n)).\]
+\end{definition}
+%
+%\begin{definition}\label{def:securityinIW}
+%A protocol $\pi$ is \emph{secure} against a semi-honest adversary,
+%if the leakage of computing a MPC application $f(x_1,\cdots, x_n)$ under the protocol
+%is the set ${\simeq_y^f}$ for every public output $y=f(x_1,\cdots, x_n)$
+%and the adversary only learns the set $\{(x_{i+1},\cdots,x_n) \mid (x_1,\cdots, x_n)\in {\simeq_y^f}\}$ for the adversary-chosen private inputs $(x_1,\cdots,x_i)$.
+%\end{definition}
+
+%Formal definitions of semi-honest security refers to~\cite{EvansKR18}.
+
+%
+%For the private inputs $x_1,\cdots, x_n, x_1',\cdots, x_n'$,
+%we say that $(x_1,\cdots, x_n)$ and  $(x_1',\cdots, x_n')$ are equivalent w.r.t. to
+%$f(x_1,\cdots, x_n)$, denoted by $(x_1,\cdots, x_n)\simeq_f (x_1',\cdots, x_n')$,
+%if $f(x_1,\cdots, x_n)=f(x_1',\cdots, x_n')$. The subscript $f$ is dropped from the equivalence  relation $\simeq_f$
+%when it is clear from the context.
+%For every tuple $(x_1,\cdots, x_n)$, we denote by
+%$(x_1,\cdots, x_n)_{\simeq}$ the equivalence class of $(x_1,\cdots, x_n)$
+%under the equivalence relation $\simeq$.
+%We denote by $\mathcal{P}_{\simeq}(D^n)$ the partition
+%of $D^n$ induced by the equivalence relation $\simeq$.
+%Therefore, for every tuple of private inputs $(x_1,\cdots, x_n)\in D^n$,
+%the adversary only learns the equivalence class $(x_1,\cdots, x_n)_{\simeq}$.
+
+

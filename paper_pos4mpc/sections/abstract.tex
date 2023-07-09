@@ -1,0 +1,16 @@
+\begin{abstract}
+Secure multi-party computation (MPC) is a promising technique for privacy-persevering applications.
+Thus, a large number of MPC frameworks have been created to reduce the burden of designing customized
+protocols and allow non-experts to quickly develop and deploy MPC applications.
+To improve performance, recent MPC frameworks allow users to declare secret variables so that only the values of secret variables are to
+be protected. However, in practice, it could be highly non-trivial for non-experts to
+specify secret variables properly: declaring too many secret variables degrades
+the performance while declaring too less secret variables compromises security.
+To address this problem, in this work, we propose an automated security policy synthesis
+to declare as few secret variables as possible but without compromising security.
+Our approach is a synergistic integration of a type inference system and a symbolic reasoning approach, where the former 
+is able to quickly infer a sound security policy and the latter allows to identify 
+secret variables in a security policy that can be declassified without compromising security. Moreover, the results from the symbolic reasoning approach is fed back to
+type inference to refine security types further. We implement our approach in a tool, named \TNAME.
+Experimental results on five typical MPC applications demonstrates the efficacy of our approach.
+\end{abstract}

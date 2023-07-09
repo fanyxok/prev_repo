@@ -1,0 +1,101 @@
+\documentclass[12pt]{article}%
+\usepackage{amsfonts}
+\usepackage{fancyhdr}
+\usepackage{comment}
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=2.2cm, right=2.2cm]%
+{geometry}
+\usepackage{times}
+\usepackage{amsmath}
+\usepackage{changepage}
+\usepackage{amssymb}
+\usepackage{graphicx}%
+\setcounter{MaxMatrixCols}{30}
+\newtheorem{theorem}{Theorem}
+\newtheorem{acknowledgement}[theorem]{Acknowledgement}
+\newtheorem{algorithm}[theorem]{Algorithm}
+\newtheorem{axiom}{Axiom}
+\newtheorem{case}[theorem]{Case}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{conclusion}[theorem]{Conclusion}
+\newtheorem{condition}[theorem]{Condition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{criterion}[theorem]{Criterion}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{solution}[theorem]{Solution}
+\newtheorem{summary}[theorem]{Summary}
+\newenvironment{proof}[1][Proof]{\textbf{#1.} }{\ \rule{0.5em}{0.5em}}
+
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Z}{\mathbb{Z}}
+
+\begin{document}
+
+\title{CS280 Fall 2021 Assignment 2 \\ Part A}
+\author{Convolutional Neural Nets}
+\maketitle
+
+\paragraph{Name: FanYuxin}
+
+\paragraph{Student ID: 2020233216}
+
+\newpage
+
+
+\subsubsection*{1. Convolution Cost (10 points)}
+Assume an input of shape  $c_i\times h\times w$  and a convolution kernel of shape  $c_o\times c_i\times k_h\times k_w$ , padding of  $(p_h,p_w)$ , and stride of  $(s_h,s_w)$ .
+\begin{itemize}
+	\item What is the computational cost (multiplications and additions) for the forward propagation?
+	\item What is the memory footprint?
+\end{itemize}
+
+\par
+
+multiplications($c_i\times h\times w$, $c_o\times c_i\times k_h\times k_w$) = $c_o \times $multiplications($c_i\times h\times w$, $c_i\times k_h\times k_w$)\\
+multiplications($c_i\times h\times w$, $c_i\times k_h\times k_w$) = $c_i\times$multiplications($h\times w$, $k_h\times k_w$)\\
+multiplications($h\times w$, $k_h\times k_w$) = $k_h \times k_w \times$ outsize \\
+outsize = $\frac{h-k_h+2\times p_h+s_h}{s_h}$ $\times$  $\frac{w-k_w+2\times p_w+s_w}{s_w}$\\
+total multiplications=$c_o \times c_i \times k_h \times k_w \times \frac{h-k_h+2\times p_h+s_h}{s_h} \times \frac{w-k_w+2\times p_w+s_w}{s_w}$\\
+
+additions($c_i\times h\times w$, $c_o\times c_i\times k_h\times k_w$) = $c_o \times $additions($c_i\times h\times w$, $c_i\times k_h\times k_w$)\\
+additions($c_i\times h\times w$, $c_i\times k_h\times k_w$) = $c_i\times $additions($h\times w$, $ k_h\times k_w$) + outsize$\times (c_i-1)$
+additions($h\times w$, $ k_h\times k_w$) = $(k_h\times k_w -1) \times $outsize
+
+total additions = $c_o \times (c_i \times (k_h\times k_w -1) \times \frac{h-k_h+2\times p_h+s_h}{s_h} \times \frac{w-k_w+2\times p_w+s_w}{s_w} + (c_i-1)\times \frac{h-k_h+2\times p_h+s_h}{s_h} \times \frac{w-k_w+2\times p_w+s_w}{s_w})$
+\\
+Input: $c_i \times h \times w$\\
+conv: $c_o \times c_i \times k_h\times k_w$\\
+output: $\frac{h-k_h+2\times p_h+s_h}{s_h}\times  \frac{w-k_w+2\times p_w+s_w}{s_w}$\\
+memory footprint = $c_i \times h \times w$ + $c_o \times c_i \times k_h\times k_w$ +$\frac{h-k_h+2\times p_h+s_h}{s_h}\times  \frac{w-k_w+2\times p_w+s_w}{s_w}$ 
+
+\newpage
+
+\subsubsection*{2. Residual and Inception blocks (5 points)}
+What are the major differences between the Inception block and the residual block? After removing some paths in the Inception block, how are they related to each other?
+\\
+\\
+Inception uses multiple paths while resudual block uses one single path with $x$.
+Remove two paths of inception block, we can get a block very similar to residual block.
+They both has two path, but residual block do nothing in a path while inception block do conv in both path.
+and residual add two path while inception concat paths.
+\newpage
+
+
+\subsubsection*{3. Optimization (5 points)}
+Consider a simple multilayer perceptron with a single hidden layer of, say,  $d$  dimensions in the hidden layer and a single output. Show that for any local minimum there are at least  $d!$  equivalent solutions that behave identically.
+\\\\
+For a local minimum, to find equivalent local minimum, we can swap the weight of the $d$ dimension hidden layer and swap the weight of $d$ dim to 1 dim affine according to the swap in hidden layer.
+\\ 
+Consider we have $d$ weights and $d$ positions, assign each weight to a position:\\
+there are totally $d!$ different assignments, they all have the same behavior.
+
+\end{document}

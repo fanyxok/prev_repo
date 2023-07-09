@@ -1,0 +1,146 @@
+\section{Related work}\label{sec:relatedwork}
+% \subsection{Multi-party computation frameworks}
+% Obliv-C\cite{oblivc}  is a simple GCC wrapper that makes embedding secure computing protocols in regular C programs. Obliv-C implements Yao's GC protocol and provides programmers a flexible control to the program executions. The Obliv-C compiler transforms an Obliv-C language program into a secure multi-party encryption protocol. The protocol performs operations without revealing any input or computed intermediate values to either party. Only the final output will be displayed.
+
+% MPyC\cite{mpyc} is a python library for MPC. It provides a python interface for fast prototyping and execution against the malicious adversary. MPyC implements Shamir's threshold secret sharing over finite fields, supports secure m-party computation.
+
+% MP-SPDZ \cite{spdz20} features a python-based front end and implements a large set of schemes, including multi-party circuit-based, hybrid, and garbled circuit protocols.  MP-SPDZ implements MPC protocol variants that cover the most commonly used security models.  However, MP-SPDZ generates the whole circuit in the compilation process so that it can't dynamically generate circuits during the execution.
+
+% ABY\cite{aby2}, EMP toolkit\cite{emp}, Frigate\cite{frigate16} and etc also perform secure computation. A recent SoK\cite{mpcsok} gives the survey and comparison of most MPC compilers.
+
+
+
+\noindent
+{\bf MPC Frameworks.}
+Early efforts to MPC frameworks provide high-level languages for specifying MPC applications and compilers
+for translating them into executable implementations~\cite{Fairplay04,Ben-DavidNP08,BogdanovLW08,DamgardGKN09,BurkhartSMD10,HolzerFKV12,SonghoriHS0K15,frigate16}.
+For instance, Fairplay complies 2-party MPC programs written in a domain-specific language into
+Yao's garbled circuits~\cite{Fairplay04}. FairplayMP~\cite{Ben-DavidNP08} extends
+Fairplay to multi-party using a modified version of the BMR protocol~\cite{BeaverMR90} with a Java-language interface.
+The others~\cite{BogdanovLW08,DamgardGKN09,BurkhartSMD10,HolzerFKV12,SonghoriHS0K15,frigate16}
+are aimed to improve the efficiency of operations in circuits and size of circuits.
+%Sharemind~\cite{BogdanovLW08}, VIFF~\cite{DamgardGKN09}, SEPIA~\cite{BurkhartSMD10}, CBMC-GC~\cite{HolzerFKV12}, TinyGarble~\cite{SonghoriHS0K15} and Frigate~\cite{frigate16}
+%are proposed to improve the efficiency of operations in circuits and size of circuits.
+Mixed MPC protocols were also proposed to improve efficiency~\cite{HeneckaKSSW10,SchropferKM11,BogdanovLR14,RastogiHH14,LaudR15,Demmler0Z15,MohasselR18,hycc18,aby221}, as the efficiency of MPC protocols vary in operations.
+These frameworks explore the implementation space of operations in specific MPC protocols (e.g., garbled circuits, secret sharing
+and homomorphic encryption), as well as their conversions.
+%Among them, Wysteria~\cite{RastogiHH14}
+%is the first work that formalizes operational semantics of its domain-specific language and proposes a refinement type system for reasoning about correctness.
+However, all these frameworks either entirely compile an MPC program
+or compile an MPC program according to user-annotated secret variables to improve performance, but without formal security guarantees.
+Our approach improves the performance of MPC applications by declassifying secret variables without compromising security,
+thus it is orthogonal to the above optimization works.
+
+
+\smallskip
+\noindent
+{\bf Security of MPC applications.}
+Since MPC applications implemented in MPC frameworks do not necessarily secure
+due to information leakage during execution in the real-world. Therefore,
+information-flow type systems and data flow analysis have been adopted in the MPC frameworks~\cite{NielsenS07,Mitchell0SZ12,picco13,LiuHSKH14,LiuWNHS15,ZahurE15,ChandranGRST19,MPyC20,spdz20}.
+%EzPC~\cite{ChandranGRST19} SMCL~\cite{NielsenS07}, PICCO~\cite{picco13}, SCVM~\cite{LiuHSKH14}, ObliVM~\cite{LiuWNHS15}, Obliv-C~\cite{ZahurE15}, MPyC~\cite{MPyC20}, MP-SPDZ~\cite{spdz20},
+%and the Haskell extension~\cite{Mitchell0SZ12}.
+However, these works only consider security verification, instead of
+automatically generation of security policies as we did.
+Moreover,
+these approaches cannot identify some variables (e.g., {\tt c2} in our motivating example)
+that can be declassified without compromising security.
+Kerschbaum~\cite{Kerschbaum11} proposed to infer public intermediate values
+by reasoning about epistemic modal logic, similar goal to ours for declassifying secret variables.
+However, it is unclear how efficient is this approach, as the performance of their approach was
+not reported in~\cite{Kerschbaum11}.
+
+
+
+Alternatively, self-composition  which reduces the security problem to
+the safety problem on two copies of a program has been adopted by~\cite{RastogiMHH13,mpcleak18,RastogiSH19},
+%\fan{\cite{,spdz20} are common frameworks,  didn't consider declassify variables and didn't provide program verification functionality. Remove them?}
+where the safety problem can be solved by safety verification tools.
+However, safety verification remains challenging and these approaches often require user annotations (e.g., procedure contracts and loop invariants) that are non-trivial for MPC practitioners. %and users
+%often have to annotate loop invariants, while writing
+%useful loop invariants is non-trivial for MPC developers.
+Compared over these works,
+there are three differences:
+(1) they only use the self-composition reduction to verify security instead of automatically generating a security policy;
+(2) they have to check almost all the program variables which is computational expensive,
+ while we first apply an efficient type system to infer a security policy
+and then only check if the security branching variables in the security policy
+can be declassified;
+and (3) we check if security branching variables can be declassified by reasoning about pairs of symbolic executions which can be seen as a divide-and-conquer approach
+without annotations and the results are fed back to the type system to efficiently refine security levels.
+We also remark that the self-composition reduction could also be used to check if a security branching variable
+could be declassified.
+
+
+
+
+%TASTY~\cite{HeneckaKSSW10} combines homomorphic encryption
+%with Yao's garbled circuits. L1~\cite{SchropferKM11} proposes a language for specifying mixed protocols.
+%Sharemind is extended mixed protocols~\cite{BogdanovLR14,LaudR15}.
+% ABY~\cite{Demmler0Z15} ABY2.0~\cite{aby221}, ABY$^3$~\cite{MohasselR18}, HyCC~\cite{hycc18},
+
+ %EMP-toolkit~\cite{emp-toolkit16},
+
+
+
+\smallskip
+\noindent
+{\bf Information-flow analysis.}
+A rich body of literature has studied the verification of information-flow security and noninterference
+in programs~\cite{DenningD77,GoguenM82a}, which requires that confidential data does not flow to
+outputs. This is too restrictive for programs which allows secret data to flow to some non-secret outputs, e.g.,
+MPC applications, therefore the security notion is extended with declassification (a.k.a. delimited release) later~\cite{LiZ05,SabelfeldS09}.
+These security problems are verified by type systems (e.g.~\cite{VolpanoIS96,SabelfeldM03,LiZ05}) or
+self-composition (e.g.,~\cite{TerauchiA05,BartheDR11}) or relational reasoning~(e.g.,~\cite{AmtoftBB06,SousaD16,BartheCK11}).
+Some of these techniques have been adapted to verify timing side-channel security, e.g.,~\cite{AlmeidaBBDE16,ChenFD17,YangVSGM18,CauligiSJBWRGBJ19}.
+However, the usual notions of security in these settings do not require reasoning about arbitrary leakage
+and these works are not directly applicable to our setting, although some of those techniques have been adapted to verify
+security of MPC applications.
+
+
+
+
+\begin{comment}
+
+\subsection{Trade-off between performance and privacy}
+Almeida et al. and  Fischer et al. study the tradeoff between performance and privacy for privacy-preserving computation in recent years.
+Both work \cite{mpcleak18,pasapto} consider revealing information about private data to improve performance.
+\cite{mpcleak18} allows a semantic leakage upper bound and uses Boogie verification toolchain to verify whether the leakage of a program is beyond the given upper bound.
+The programmer gives the upper bound and writes annotations including precondition, postcondition, and loop invariants into source code to guide the theorem prover to complete the verification.
+The verification conditions heavily rely on the knowledge of programmers.
+
+\cite{pasapto} quantizes the information leakage of private inputs as the number of bits.
+It models the tradeoff as an optimization problem.
+\cite{pasapto} heuristically searches the variants which reveal some privacy information flow of the program to find an optimal variant within a user given leakage upper bound.
+
+\subsection{Circuit level optimization}
+Circuit level optimization reduces gate cost for general MPC.
+The state-of-the-art circuit level optimization technique is Half Gates \cite{halfgate} which leverages prior optimization work \cite{BeaverMR90,grr3,freexor}.
+Half Gates divides an AND gate into two half gates, one for garbler and the other one for evaluator.
+Half Gates needs two ciphertexts in communications for an AND gate while the classical gates need eight ciphertexts.
+Half Gates needs no communications for XOR gates that are compatible with Free XOR \cite{freexor}.
+
+\subsection{Specified protocol}
+For MPC problems with important applications, researchers always design specified protocols to achieve higher performance than general protocols.
+For example, the Private Set Intersection (PSI) problem.
+
+Pinkas et al. \cite{pssz} design a two-party PSI protocol using permutation-based hashing.
+The performance of \cite{pssz} is much better than circuit-based PSI and OT-based PSI
+\cite{pssz} achieves 3$\times$-4$\times$ overhead than insecure hashing PSI protocol for 32-bit item length and sufficiently large sets.
+
+Kolesnikov et al. \cite{kol} proposed the state-of-the-art PSI protocol based on \cite{pssz} with an efficient OPRF.
+\cite{kol} achieves about 3$\times$ speedup than \cite{pssz} for 128 bit item length and sufficiently large sets.
+
+\subsection{Hybrid protocol}
+ABY \cite{aby221} is a hybrid protocol framework for two-party MPC.
+ABY provides switches among Arithmetic GMW protocol,  Boolean GMW protocol, and Yao's garbled circuit protocol.
+Programmers can assign different protocols to different computations to achieve higher performance.
+For example, computing arithmetic operations using Arithmetic GMW protocol and computing comparison operations using Yao's garbled circuit protocol.
+
+HyCC \cite{hycc18} proposes the protocol selection for hybird protocol.
+HyCC splits the full functionality into small parts.
+In the protocol selection phase, HyCC benchmarks the cost of each operation and decides the protocol for each small part by optimizing a cost function.
+ABY \cite{aby221} assigns protocol to operations during the development process.
+The assignment relies on the knowledge of programmers.
+But HyCC \cite{hycc18} selects protocol according to the running environment.
+\end{comment}

@@ -1,0 +1,11 @@
+*.aux
+*.bbl
+*.blg
+*.log
+*.synctex.gz
+.vscode
+paper.pdf
+main.pdf
+./main.pdf
+*.out
+bak.xlsx

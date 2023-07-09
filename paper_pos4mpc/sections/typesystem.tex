@@ -1,0 +1,126 @@
+\section{Type System}\label{sec:typesystem}
+In this section, we present a sound type system to infer
+perfect security policies.
+%proving noninterference property of $p$, yielding
+%an automated approach for IPF synthesis via type inference.
+%
+%%for a MPC application $f(x_1,\cdots, x_n)$ with the implementation $p$.
+%Next, we present a sound type system for proving noninterference property of $p$, yielding
+%an automated approach for IPF synthesis via type inference.
+%
+%\subsection{Noninterference}
+We first define noninterference of a program $p$ w.r.t. a security policy $\varrho$,
+which is shown to entail the perfectness of $\varrho$.
+
+\begin{definition}
+A program $p$ %of a MPC application $f(x_1,\cdots, x_n)$
+is \emph{noninterfering} w.r.t. a security policy $\varrho$, written as $\varrho$-noninterfering,
+if $\Enc_\varrho(1,p)$ does not throw any errors and $\MPCAngle{\widehat{p}_\varrho,\sigma_1}\Downarrow_\varrho^{\Pub} \sigma_2:v$ and $\MPCAngle{\widehat{p}_\varrho,\sigma_1'}\Downarrow_\varrho^{\Pub} \sigma_2':v'$
+are the same for each pair of states $\sigma_1,\sigma_1'\in \InitState_0$. % such that $\MPCAngle{\widehat{p}_\varrho,\sigma_1}\Downarrow \sigma_2:v$, $\MPCAngle{\widehat{p}_\varrho,\sigma_1'}\Downarrow \sigma_2':v'$ and $v=v'$.
+\end{definition}
+
+Intuitively, the $\varrho$-noninterference ensures that for all private inputs of the $n$ parties (without the adversary-chosen private inputs), the adversary observes the same sequence of the configurations from all the executions that return the same value.
+
+The $\varrho$-noninterference of $p$ entails the perfectness of $\varrho$ where
+the adversary can choose arbitrary private inputs $\vec{v}_k\in\Dom^k$ of the corrupted participants ($\Party{1},\cdots, \Party{k}$)
+for any $k\geq 1$.
+
+\begin{proposition}\label{prop:NI2Sec}
+If $p$ is $\varrho$-noninterfering for a security policy $\varrho$, then $\varrho\models_p f(\vec{x})$.
+%$\varrho$ is secure for the MPC application $f(x_1,\cdots, x_n)$
+%whose functionality is implemented in $p$.
+\end{proposition}
+
+
+Note that the converse of Proposition~\ref{prop:NI2Sec} does not necessarily  hold due to
+the adversary-chosen private inputs.
+For instance, suppose $\MPCAngle{\widehat{p}_\varrho,\sigma_1}\Downarrow_\varrho^{\Pub} \sigma_2:v$
+and $\MPCAngle{\widehat{p}_\varrho,\sigma_1'}\Downarrow_\varrho^{\Pub} \sigma_2':v$ are identical
+for every pair of states $\sigma_1,\sigma_1'\in \leak_{\tt iw}^p(v,v_1)$,
+and $\MPCAngle{\widehat{p}_\varrho,\sigma_3}\Downarrow_\varrho^{\Pub} \sigma_4:v$
+and $\MPCAngle{\widehat{p}_\varrho,\sigma_3'}\Downarrow_\varrho^{\Pub} \sigma_4':v$ are identical
+for every pair of states  $\sigma_3,\sigma_3'\in \leak_{\tt iw}^p(v,v_1')$.
+If $v_1\neq v_1'$, then $\MPCAngle{\widehat{p}_\varrho,\sigma_1}\Downarrow_\varrho^{\Pub} \sigma_2:v$ and $\MPCAngle{\widehat{p}_\varrho,\sigma_3}\Downarrow_\varrho^{\Pub} \sigma_4:v$
+are different, implying that $p$ is not $\varrho$-noninterfering.
+
+
+
+%\subsection{Typing Inference}
+Based on Proposition~\ref{prop:NI2Sec},
+%one can design a sound type system for verifying $\varrho$-noninterfernece. %which has been well-established in literature, e.g.,~\cite{Agat00,HuntS06,CauligiSJBWRGBJ19,WattRPCS19}.
+%To be self-contained,
+we present a type system for inferring a perfect security policy $\varrho$ of a given program $p$ such that  $p$ is $\varrho$-noninterfering.
+The typing judgement is in the form of $\cxt\vdash p:\varrho \Rightarrow \varrho'$, where
+the type contexts $\varrho,\varrho'$ are security policies, $p$ is the program under typing,
+and $\cxt$ is the security level of the current control flow.
+The typing judgement $\cxt\vdash p:\varrho \Rightarrow \varrho'$
+states that given the security level of the current control flow $\cxt$ and the type context $\varrho$,
+the statement $p$ is typable and yields a new updated type context $\varrho'$.
+
+%if $\varrho(x)=\Sec$ for all private inputs $x$, then the type judgement $\varrho,\Pub\vdash p:\varrho'$ is valid iff
+%the program $p$ is $\varrho'$-interfering.
+
+
+The type inference rules are shown in Fig.~\ref{fig:type} which track the security levels of
+both data-flow and control-flow of information from private inputs, where $\varrho(e)$ denotes the least upper bound of the security levels $\varrho(x)$ of variables $x$ used in the expression $e$
+and $\varrho_1 \sqcup\varrho_2$ is the security policy such that for every variable $x\in \Var$,
+$(\varrho_1 \sqcup\varrho_2)(x)=\varrho_1(x)\sqcup\varrho_2(x)$. Note that constants have the security level
+$\Pub$. Most of those rules are standard. We comment on some essential rules.
+
+
+\begin{figure}[t]
+    \centering
+\scalebox{0.9}{	
+\begin{tabular}{cccc}
+%\hline \specialrule{0em}{3pt}{3pt}
+  \multicolumn{2}{r}{$\dfrac{}{\cxt \vdash \Pskip:\varrho\Rightarrow\varrho}$[{\sc T-Skip}]} \qquad&
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \multicolumn{2}{r}{$\dfrac{\varrho'=\varrho[x\mapsto \cxt\sqcup \varrho(e)]}{\cxt \vdash x=e:\varrho\Rightarrow\varrho'}$[{\sc T-Assign}]}
+ \\ \specialrule{0em}{3pt}{3pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ \multicolumn{2}{r}{$\dfrac{\makecell[c]{\cxt \vdash p_1:\varrho\Rightarrow\varrho_1 \\ \cxt \vdash p_2:\varrho_1\Rightarrow\varrho_2}}{\cxt \vdash p_1;p_2:\varrho\Rightarrow\varrho_2}$[{\sc T-Seq}]}\qquad &
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ \multicolumn{2}{r}{$\dfrac{\makecell[c]{\cxt\sqcup \varrho(x)  \vdash p_1:\varrho\Rightarrow\varrho_1 \\ \cxt\sqcup \varrho(x) \vdash p_2:\varrho\Rightarrow\varrho_2} \quad\varrho'=\varrho_1 \sqcup\varrho_2 }{\cxt \vdash {\Pif} \ x \ {\Pthen} \  p_1 \ {\Pelse} \ p_2:\varrho\Rightarrow\varrho'}$[{\sc T-If}]} \\
+ \specialrule{0em}{3pt}{3pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\multicolumn{2}{r}{$\dfrac{}{\cxt \vdash {\Preturn} \ x:\varrho\Rightarrow\varrho}$[{\sc T-Return}]}\qquad &
+ \multicolumn{2}{r}{$\dfrac{\cxt\vdash p:\varrho\Rightarrow\varrho'}{\cxt \vdash \Prepeat \ n \ \Pdo \ p:\varrho\Rightarrow\varrho'}$[{\sc T-Repeat}]}\\
+ \specialrule{0em}{3pt}{3pt}
+ \multicolumn{4}{c}{$\dfrac{\varrho(x)=\Pub \quad \cxt=\Pub \quad \Pub\vdash p:\varrho\Rightarrow\varrho'}{\cxt \vdash \Pwhile \ x \ \Pdo \ p:\varrho\Rightarrow\varrho'}$[{\sc T-While}]}\\
+ \specialrule{0em}{3pt}{3pt} \hline
+	\end{tabular}}
+\vspace{-2mm}
+    \caption{Type inference rules} %, where $\varrho(e)$  is the least upper bound of the security levels $\varrho(x)$ of variables $x$ used in $e$ and  $\varrho_1 \sqcup\varrho_2$ is an IFP such that for every variable $x\in \Var$, $(\varrho_1 \sqcup\varrho_2)(x)=\varrho_1(x)\sqcup\varrho_2(x)$}
+    \label{fig:type}
+\vspace{-4mm}
+\end{figure}
+
+Rule {\sc T-Assign} disables the data-flow and control-flow of information from the security level $\Sec$
+to the security level $\Pub$. To meet this constraint, the security level of the variable $x$ is updated to the least upper bound $\cxt\sqcup \varrho(e)$ of
+the security levels of the current control flow $\cxt$ and variables used in the expression $e$.
+Rule {\sc T-If} passes the security level $\cxt$ of the current control flow into both branches, preventing from assigning values to public variables in those two branches when $c=\Sec$.
+Rule {\sc T-While} requires that the loop condition is public
+and the loop is used with secret-independent conditions,
+ensuring that $\Enc_\varrho(1,p)$ does not throw any errors.
+% Indeed, we assumed that
+%all the loops are bounded by constants.
+Rule {\sc T-Return} does not impose any constraints on $x$, as
+the return value is observable to the adversary.
+
+Let $\varrho_0:\Var\rightarrow \seclev$ be the mapping such that $\varrho_0(x)=\Sec$ for all $x\in \Var^{\Sec}$,
+$\varrho_0(x)=\Pub$ otherwise.
+If the typing judgement $\Pub\vdash p:\varrho_0\Rightarrow\varrho$ is valid, then
+the values of all the public variables specified by $\varrho$ do not depend on any values of private inputs.
+Thus, it is straightforward to get that:
+
+\begin{proposition}\label{thm:typesystem2NI}
+If the typing judgement  $\Pub\vdash p:\varrho_0\Rightarrow\varrho$ is valid, then the program $p$ is $\varrho$-noninterfering.
+\end{proposition}
+
+From Proposition~\ref{prop:NI2Sec} and Theorem~\ref{thm:typesystem2NI} we have
+
+\begin{corollary}\label{coro:typesystem2Leak}
+If $\Pub\vdash p:\varrho_0\Rightarrow\varrho$ is valid, then $\varrho$ is perfect, i.e., $\varrho\models_p f(\vec{x})$.
+\end{corollary}
+
+

@@ -1,0 +1,322 @@
+
+\section{Introduction}
+% no \IEEEPARstart
+
+%Cryptographic techniques have the potential to enable distrusting
+%parties to collaborate in fundamentally new ways,
+%but their practical implementation poses numerous challenges.
+%An important class of such cryptographic techniques
+%is known as Secure Multi-Party Computation (MPC). Developing
+%Secure MPC applications in realistic scenarios requires
+%extensive knowledge spanning multiple areas of cryptography
+%and systems. And while the steps to arrive at a solution
+%for a particular application are often straightforward, it remains
+%difficult to make the implementation efficient, and
+%tedious to apply those same steps to a slightly different application
+%from scratch. Hence, it is an important problem
+%to design platforms for implementing Secure MPC applications
+%with minimum effort and using techniques accessible
+%to non-experts in cryptography.
+
+%contains an embedded domain-specific language Harpoon,
+%for software developers without cryptographic expertise to
+%write MPC-based programs, and uses Lightweight Modular
+%Staging (LMS) for code generation.
+
+%Harpoon programs are compiled into acyclic circuits represented
+%in HACCLE’s Intermediate Representation (HIR) that
+%serves as an abstraction over different cryptographic protocols
+%such as secret sharing, homomorphic encryption, or
+%garbled circuits.
+
+Secure multi-party computation (MPC) is a powerful cryptographic paradigm, allowing mutually distrusting parties to collaboratively compute a public function over their private data without
+a trusted third party and revealing nothing beyond the result of the computation and their own private data~\cite{Yao86,ChaumCD88,GMW,yao82,EvansKR18}.
+%Assume that $N$ participants have private data $x=(x_1, \cdots, x_n)$ where the participant $P_i$ owns $x_i$. They want to compute $y=f(x)$ over their private input but do not want to reveal it to each other. A straightforward solution is that each participant sends its private data $x_i$ to a trust-third-party (TTP), which computes the function $f$ over $x$ and outputs the result to each participant. However, it is hard to find a party that all participants trust in the real world. MPC provides the feasibility to solve this problem without TTP \cite{yao82}.
+MPC has potential for broader uses in practical applications, e.g., truthful auctions~\cite{BogetoftDJNPT06}, avoiding satellite collisions~\cite{HemenwayLOW16},
+privacy-preserving machine learning~\cite{secureml,securenn} and data analysis~\cite{securedata}.
+%
+%Despite the demand of MPC for privacy-preserving applications,
+However, practical deployment of MPC has been limited due to its computational and communication complexity.
+
+To foster the application of MPC, a number of %highly-optimized,
+general-purpose MPC frameworks have been proposed~\cite{HeneckaKSSW10,SchropferKM11,BogdanovLR14,RastogiHH14,LaudR15,Demmler0Z15,MohasselR18,hycc18,aby221,NielsenS07,Mitchell0SZ12,picco13,LiuHSKH14,LiuWNHS15,ZahurE15,ChandranGRST19,MPyC20,spdz20,RastogiSH19}.
+These frameworks provide high-level languages for specifying MPC applications as well as compilers for translating them into executable implementations. They can drastically reduce the burden of designing customized protocols and allow non-experts to quickly develop
+and deploy MPC applications.
+For efficiency consideration, many MPC frameworks provide features to declare secret variables so that only the values of these variables are to be protected.
+However, such frameworks usually do not verify rigorously whether there is information leakage, or
+%
+%the security or (ii) verify the security
+on some occasions provide light-weighted checking (via, e.g.,  information-flow type systems or data flow analysis).
+%Without formal verification, the computation in the real-world may reveal more information than the result of the computation and their own private data.
+%Though these verification techniques are promising,
+%they may fail to verify some programs that do not
+%reveal more information than the result of the computation and participants' own private data.
+%
+Even though some frameworks are %tailored for non-experts with
+equipped with formal security guarantees,
+it is challenging for non-experts to develop an MPC program that simultaneously achieves good performance and formal security guarantees. A typical case for an user is to declare all variables secret while ideally
+%Indeed, it is desired to
+one would declare as
+few secret variables as possible to achieve a good performance without compromising security. % when the adversary is able to observe more intermediate computation results.
+
+
+In this work, we propose an automated security policy synthesis approach for MPC.
+We first formalize the leakage of an MPC application in the ideal-world as a
+set of private inputs and define the notion
+of security policy, which assigns each variable a security level. This can bridge the
+language-level and protocol-level leakages, hence our approach is independent
+of specific MPC protocols being used.
+Based on the leakage characterization, we provide  a type
+system to  infer security policies by tracking both control-flow and data-flow of information from the private inputs.
+While a security policy inferred from the type system formally guarantees that the MPC application will not leak more information than the result of the computation and participants' own private data,
+it may be too conservative. For instance, some variables could be declassified without compromising security, but can improve
+performance. Therefore, we propose a symbolic reasoning approach to identify secret variables
+in a security policy that can be declassified without compromising security.
+Furthermore, we feed back the results from the symbolic reasoning to type inference to refine security types further.
+%but does not require any annotations for procedure contracts or loop invariants.
+
+We present the tool \TNAME, implementing the security \textbf{Po}licy \textbf{S}ynthesis approach for \textbf{MPC}  based on the LLVM Compiler~\cite{llvm} and the KLEE symbolic execution engine~\cite{CadarDE08}.
+Experimental results on five typical MPC applications show that our approach can generate less restrictive security policies than using the type system solely.
+We also %evaluate the performance improvement using
+deploy the generated security policies in two different MPC frameworks Obliv-C~\cite{ZahurE15} and MPyC~\cite{MPyC20}. The results show that, for instance,  the security policies generated by our approach can reduce the execution time
+by $31\%$--$1.56\times 10^5\%$,  the circuit size by $38\%$--$3.61\times 10^5\%$, and the communication traffic by $39\%$--$4.17\times 10^5\%$  in Obliv-C.
+%and $17\%$--$1.56\times 2.5^4\%$ execution time in MPyC, compared over the security policies generated by the sole type system.
+
+%compared over the ones obtained by solely applying
+%the type system.
+
+To summarize, our main technical contributions are as follows.
+\begin{itemize}
+  \item A formalization of information leakage for MPC applications and the notion of security policy to bridge the language-level and protocol-level leakages;
+  \item An automated security policy synthesis approach that is able to generate less restrictive security policies; % than the sole type system;
+  \item An implementation of our approach for a real-world language and an evaluation on challenging benchmarks from the literature.
+\end{itemize}
+
+\smallskip
+\noindent
+{\bf Outline.} %The remainder of this paper is organized as follows.
+Section~\ref{sec:motivation} presents the motivation of this work and overview of our approach.
+Section~\ref{sec:preli} gives the background of MPC.
+Section~\ref{sec:leakagePL} introduces a simple language on which we formalize the leakage of MPC applications.
+We propose a type system for inferring security policies in Section~\ref{sec:typesystem}
+and a symbolic reasoning approach for declassification in Section~\ref{sec:symbolicreasoning}.
+Implementation details and experimental results are given in Section~\ref{sec:implementation}.
+%and Section~\ref{sec:experiments}, respectively.
+Finally, we discuss related work in Section~\ref{sec:relatedwork}
+and conclude this paper in Section~\ref{sec:conclusion}.
+
+
+%As a result, MPC provides general privacy-preserving computation and %, is a powerful technology of cryptography.
+%plays a critical role in privacy and data fields, such as privacy-preserving machine learning \cite{secureml,securenn}, privacy-preserving data analysis \cite{securedata}.
+%While MPC is powerful, the efficiency limits the deployment of MPC applications.
+%MPC is a distributed system that interactively completes its computation by communicating with each other.
+%Operating encrypted data in MPC is much more expensive than plaintext local.
+
+% The practical application of MPC are increasing, and there are many MPC software frameworks
+% to help developers develop MPC applications.
+% The MPC software framework contains a domain-specific language for MPC and a compiler. Programmers develop MPC applications as if they are developing a program running on a trusted third party. The compiler takes the task of compiles the programs into executable applications running MPC protocol.
+
+\begin{comment}
+Optimizing the performance of real-world MPC is a critical problem.
+So far there have been many optimization strategies. Beaver's preprocessing multiplication triples and offline-online phase \cite{triple} significantly reduces the number of rounds of interaction.
+Kolesnikov et al. \cite{freexor} propose Free XOR makes XOR gate evaluation non-interactive.
+Zahur et al. \cite{halfgate} propose Half Gate in which XOR gates are free and AND gates cost two ciphertexts.
+Above optimization techniques reduce the communications of general MPC protocols.
+Kolesnikov et al. \cite{kol}, and Pinkas et al. \cite{pssz} take advantage of the structure of the Private Set Intersection (PSI) problem to build a more efficient specified protocol.
+Almeida et al.'s work \cite{mpcleak18} considers the tradeoff between privacy and efficiency.
+\cite{mpcleak18} allows MPC programs to leak information about privacy data to improve the performance.
+
+In this work, we take advantage of MPC's property.
+We extract leakage lower bounds from MPC programs,
+then reveal partial privacy information within the leakage lower bound and reduce the use of oblivious control structure.
+Our method reduces the circuit size significantly and improves the performance of MPC programs without a tradeoff on security.  Our method is also compatible with other optimization techniques such as
+\cite{triple,freexor,halfgate}.
+
+% One reason that affects efficiency is to keep the privacy of control flow when the condition of a branch is private data.
+% The MPC protocol has to execute both branches no matter the condition's value.
+% Thus, an adversary can not know the semantic value of the privacy data by learning control flow.
+% Another reason is that accessing array elements by privacy indexes costs extra computation to keep the privacy of privacy indexes.
+% The MPC protocol must make additional memory accesses to avoid an adversary knowing semantic values of privacy indexes by learning memory access patterns.
+
+Our observation is that MPC programs always reveal its result to participants while the result is private data during the execution. This property of  real-world MPC programs makes it not leakage-free.
+The key point is that the final result indicates information about the private inputs.
+The functionality of the MPC program is known to all participants.
+Thus, an adversary can divide the domain of private inputs into many parts according to different results.
+After receiving the result, the adversary knows the domain of private inputs in this execution.
+MPC cannot ensure a MPC program's result contains no information about the private inputs.
+MPC ensures nothing leaked during the secure computation,
+but the adversary still learns private information from its result.
+
+In this paper, we model and extract the information leakage of MPC program with considering the leakage of MPC program's result. We call the leakage only contains the result as leakage lower bound.
+We propose an optimization approach based on the strategy that reveals intermediate privacy data during the execution of MPC programs.
+We design and implement an automatic tool to verify the relation between information leakage of an optimized program and information leakage lower bound.
+Therefore, we ensure verified optimized program by our approach does not compromise security.
+
+We collect and implement MPC applications on two real-world MPC frameworks.
+One framework is Obliv-C implements Yao's garbled circuit protocol, and the other is MPyC implements Shamir's secret sharing protocol.
+The experimental result shows that our optimization approach improves the performance of study case programs on both protocols.
+Our approach reduced 20\% to 91\% circuit size and communications, achieved 1.25$\times$ to 3.84$\times$ speedup of protocol evaluation time in Yao's garbled circuit protocol,
+and 1.25$\times$ to 24.14$\times$ speedup in Shamir's secret sharing protocol.
+
+
+The summary of our contributions is following:
+\begin{enumerate}
+	\item propose a new strategy to improve the performance of MPC programs without tradeoff on security;
+	\item implement an automatic verification tool to verify the leakage of optimized programs;
+	\item collect MPC applications from related literature and projects and implement benchmark programs in two real-world MPC frameworks;
+	\item achieve 1.25$\times$ to 24.14$\times$ speedup of MPC program study cases.
+\end{enumerate}
+
+
+%Emphasize:
+%
+%We give a language-based security treatment of domain-specic languages and compilers for
+%secure multi-party computation, a cryptographic paradigm that enables collaborative computation over
+%encrypted data.
+
+\emph{Structure.} In the next section, we introduce a motivating example.
+Section III statements preliminary knowledge and definitions.
+We describe our method in section IV.
+Section V shows the implementation of our verification tool and experimental results.
+Section VI discusses related work and section VII concludes our work.
+
+%\section{Introduction}
+%% no \IEEEPARstart
+%
+%%Cryptographic techniques have the potential to enable distrusting
+%%parties to collaborate in fundamentally new ways,
+%%but their practical implementation poses numerous challenges.
+%%An important class of such cryptographic techniques
+%%is known as Secure Multi-Party Computation (MPC). Developing
+%%Secure MPC applications in realistic scenarios requires
+%%extensive knowledge spanning multiple areas of cryptography
+%%and systems. And while the steps to arrive at a solution
+%%for a particular application are often straightforward, it remains
+%%difficult to make the implementation efficient, and
+%%tedious to apply those same steps to a slightly different application
+%%from scratch. Hence, it is an important problem
+%%to design platforms for implementing Secure MPC applications
+%%with minimum effort and using techniques accessible
+%%to non-experts in cryptography.
+%
+%%contains an embedded domain-specific language Harpoon,
+%%for software developers without cryptographic expertise to
+%%write MPC-based programs, and uses Lightweight Modular
+%%Staging (LMS) for code generation.
+%
+%%Harpoon programs are compiled into acyclic circuits represented
+%%in HACCLE’s Intermediate Representation (HIR) that
+%%serves as an abstraction over different cryptographic protocols
+%%such as secret sharing, homomorphic encryption, or
+%%garbled circuits.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%We give a language-based security treatment of domain-specic languages and compilers for
+%%secure multi-party computation, a cryptographic paradigm that enables collaborative computation over
+%%encrypted data. Computations are specied in a core imperative language, as if they were intended to
+%%be executed by a trusted-third party, and formally veried against an information-flow policy modelling
+%%(an upper bound to) their leakage. This allows non-experts to assess the impact of performance-driven
+%%authorized disclosure of intermediate values.
+%%Specications are then compiled to multi-party protocols. We formalize protocol security using (distributed)
+%%probabilistic information-flow and prove security-preserving compilation: protocols only leak
+%%what is allowed by the source policy. The proof exploits a natural but previously missing correspondence
+%%between simulation-based cryptographic proofs and (composable) probabilistic non-interference.
+%%Finally, we extend our framework to justify leakage cancelling, a domain-specic optimization that allows
+%%to, rst, write an eciently computable specication that fails to meet the allowed leakage upper-bound,
+%%and then apply a probabilistic pre-processing that brings the overall leakage to within the acceptable
+%%range.
+%
+%
+%%These MPC software stacks give (non-expert) programmers
+%%the ability to develop applications in traditional (sequential) programming languages, as if the computation
+%%was to be run by one TTP. These programs are then compiled to (probabilistic) protocols that realize the
+%%computation in a distributed, multi-party, setting.
+%
+%%To achieve efficient realizations, MPC programs tend to avoid computations that are expensive in a
+%%distributed setting, such as accessing arrays with secret indexes or securely branching based on secret values.
+%%A common approach to expose these constraints is via a standard information flow type system, with
+%%MPC-specific public control-flow restrictions (control-flow guards and array access expressions for imperative
+%%languages [17], or conditionals, xpoint recursion [40], sum types and higher-order functions [44] for functional
+%%languages).
+%%
+%%It is possible to express oblivious control-flow by computing all possible outcomes and algebraically selecting
+%%the correct result, but the overhead can be prohibitive in practical applications. Most often, this process can be
+%%performed as a compilation step (cf. [40,44]), but we adopt the approach of [17] where programmers handle oblivious
+%%control-flow explicitly, which simplifies our presentation and formalization. Dan Bogdanov, Sven Laur, and Jan Willemson. Sharemind: A framework for fast privacy-preserving computations.
+%%In Proceedings of the 13th European Symposium on Research in Computer Security, 2008.
+%
+%%Source-level analysis: We propose an automated method for proving security of source programs. Our notion of
+%%security is expressed as a variant of non-interference, and states that inputs related by a leakage specication
+%%yield equal leakage, where leakage is modeled using an instrumented source-level semantics. Verication relies
+%%on relational program verication techniques, and is performed with minimal overhead. Indeed, we observe
+%%that MPC source programs, through information-flow types and declassify statements, expose sufficient
+%%information to adapt a technique developed for analysing timing leaks in assembly code [1]. Our main
+%%contribution at this level is to adapt this technique to the MPC setting, extending it to deal with a real-world
+%%MPC programming language, and to demonstrate its application to proving meaningful (not trace-based)
+%%leakage upper-bounds. Using our tool for source-level analysis, a programmer that is not a MPC expert can
+%%prove a leakage upper-bound that can be matched to the security requirements of the application.
+%%
+%%Secure compilation. We prove that low-level protocols do not leak more information than source programs
+%%from which they are generated. The central challenge here is to connect formally information flow-based
+%%notions of security for source programs and cryptographic simulation-based notions of security for protocols.
+%%Our solution is based on an alternative notion of protocol security, leveraging probabilistic information flow.
+%%We dene a distributed probabilistic semantics that gives meaning to securely computing a functionality
+%%using a distributed protocol and introduce the notion of each party's view of the protocol. Our notion of
+%%protocol security states that parties executing the protocol correctly (a.k.a. honest-but-curious parties) cannot
+%%distinguish between two runs of the protocol on related inputs; precisely, the views|distributions over local
+%%execution traces|of each party are identical in the two runs.
+%
+%%We show that our notion of security composes to justify the guarantees provided by secure multiparty
+%%compilation, as used in MPC software stacks: generating MPC protocols for arbitrary source programs by
+%%plugging together very simple atomic cryptographic components. Our main theorem states that, for any
+%%correctly typed program, source-level security is preserved as distributed information low security of the
+%%compiled protocol. We conclude by proving that, for correct executions of the program, this also implies the
+%%intended simulation-based notion of cryptographic security.
+
+%Syntax Our work considers SecreC [15], a commercial MPC language resembling C++, supporting high-level
+%programming features such as procedures, templates or recursion, and used for writing secure applications in
+%the Sharemind framework [17]. For our formal development, we will use a core imperative language extended
+%with a declassify operator. (This makes our results more widely applicable and helps distinguishing them from language features that are orthogonal to security analysis, but would complicate the formalism without additional insight.) For clarity of presentation and w.l.o.g., we make a syntactic distinction between
+%secure operations sop and public operations pop, and restrict the use of secure operations to top-level
+%expressions. The syntax of programs appears in Figure 2.
+
+%In this section we give a meaning to securely computing a source-level program using
+%
+%a distributed, secret sharing-based, cryptographic protocol.
+%
+%We will do this by providing a (low-level) distributed semantics for
+%the specification language we introduced in the previous section.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%This work considers the trade-off between security
+%and performance when revealing partial information about
+%encrypted data computed on. The focus of our work is on
+%information revealed through control flow side-channels when
+%executing programs on encrypted data. We use quantitative
+%information flow to measure security, running time to measure
+%performance and program transformation techniques to alter
+%the trade-off between the two. Combined with information flow
+%policies, we perform a policy-aware security and performance
+%trade-off (PASAPTO) analysis. We formalize the problem of
+%PASAPTO analysis as an optimization problem, prove the NPhardness
+%of the corresponding decision problem and present two
+%algorithms solving it heuristically.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Secure multi-party computation (MPC) is a powerful cryptographic paradigm. MPC protocols allow two or
+%more mutually distrusting parties to collaboratively compute over their private data, revealing nothing more
+%than the result of the computation. MPC eliminates the need for delegating secure computations to a TTP
+%(trusted third party), signicantly reducing logistical and trust management problems, as well as security risks
+%inherent to having a TTP as a single point of failure. As a consequence (and after two decades of sustained
+%breakthroughs in its underlying technology) MPC is increasingly used for practical applications [22, 31, 47].
+
+%To achieve efficient realizations, MPC programs tend to avoid computations that are expensive in a
+%distributed setting, such as accessing arrays with secret indexes or securely branching based on secret values.
+%A common approach to expose these constraints is via a standard information  flow type system, with
+%MPC-specific public control-flow restrictions (control-flow guards and array access expressions for imperative
+%languages [17], or conditionals, xpoint recursion [40], sum types and higher-order functions [44] for functional
+%languages).
+\end{comment}
